@@ -4,53 +4,145 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a3e4521f-c062-4b41-98d9-b36721ac81d0" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/InsurMinds2026.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
+    <list default="true" id="a3e4521f-c062-4b41-98d9-b36721ac81d0" name="Changes" comment="upnew">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;albertoakel&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/albertoakel/InsurMinds2026.git&quot;,
+    &quot;accountId&quot;: &quot;e614fdb0-61a3-4f95-abe2-542ea52b8b02&quot;
+  }
+}</component>
   <component name="McpProjectServerCommands">
     <commands />
     <urls />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 4,
-  "fromUser": false
-}]]></component>
+  <component name="NextEditCompletionFeaturesState">
+    <decayedCancelled>
+      <entry key="MS100" value="1.326380722497277" />
+      <entry key="MS500" value="2.2576345440529284" />
+      <entry key="S2" value="4.185543027895469" />
+      <entry key="S5" value="5.143739344954144" />
+      <entry key="S10" value="5.689873976601655" />
+      <entry key="S30" value="7.943486590339187" />
+      <entry key="S60" value="10.019910582556312" />
+      <entry key="M2" value="11.6866560111713" />
+      <entry key="M5" value="13.035005160593819" />
+      <entry key="M10" value="14.198811306591834" />
+      <entry key="M15" value="15.384734337930965" />
+      <entry key="M30" value="18.16869390702682" />
+      <entry key="H1" value="22.583366021676742" />
+      <entry key="H2" value="33.43000247443332" />
+      <entry key="H4" value="61.16411301760939" />
+      <entry key="D1" value="165.24387981346382" />
+      <entry key="W1" value="212.09826214477033" />
+    </decayedCancelled>
+    <decayedSelected>
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="0.0" />
+      <entry key="S2" value="0.0" />
+      <entry key="S5" value="4.949727148859558E-137" />
+      <entry key="S10" value="7.035429730200957E-69" />
+      <entry key="S30" value="1.9161531166542844E-23" />
+      <entry key="S60" value="4.377388624116306E-12" />
+      <entry key="M2" value="2.092220978796529E-6" />
+      <entry key="M5" value="0.005348635727622162" />
+      <entry key="M10" value="0.07313436762304135" />
+      <entry key="M15" value="0.17488303179815146" />
+      <entry key="M30" value="0.4181914877390941" />
+      <entry key="H1" value="0.648652296899145" />
+      <entry key="H2" value="0.881177181102841" />
+      <entry key="H4" value="1.383869917830803" />
+      <entry key="D1" value="3.9628815978048118" />
+      <entry key="W1" value="5.614468804531219" />
+    </decayedSelected>
+    <decayedShown>
+      <entry key="MS100" value="1.2990771698744636" />
+      <entry key="MS500" value="2.247915577063159" />
+      <entry key="S2" value="4.180947961272535" />
+      <entry key="S5" value="5.141478060526226" />
+      <entry key="S10" value="5.688579807473505" />
+      <entry key="S30" value="7.9426931150133475" />
+      <entry key="S60" value="10.019337874471017" />
+      <entry key="M2" value="11.686300608371868" />
+      <entry key="M5" value="13.04012001689083" />
+      <entry key="M10" value="14.271387979004944" />
+      <entry key="M15" value="15.558806614500668" />
+      <entry key="M30" value="18.585929891124497" />
+      <entry key="H1" value="23.23114941789899" />
+      <entry key="H2" value="34.3103886238301" />
+      <entry key="H4" value="62.547246732771484" />
+      <entry key="D1" value="169.20642154305492" />
+      <entry key="W1" value="217.71266437164567" />
+    </decayedShown>
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="ProjectErrors" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4,
+  &quot;fromUser&quot;: false
+}</component>
   <component name="ProjectId" id="3HBgD7kxenVFsRmjLtbiWgFbCq2" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "master",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.main.executor&quot;: &quot;Run&quot;,
+    &quot;Python.make_vector_store.executor&quot;: &quot;Run&quot;,
+    &quot;Python.mcp_client.executor&quot;: &quot;Run&quot;,
+    &quot;Python.mcp_helpers.executor&quot;: &quot;Run&quot;,
+    &quot;Python.mcp_server.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/akel/PycharmProjects/InsurMinds2026/MCP&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.jshint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.jshint&quot;: &quot;&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;
   }
-}]]></component>
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/MCP" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -66,10 +158,98 @@
       <option name="presentableId" value="Default" />
       <updated>1785346754213</updated>
     </task>
+    <task id="LOCAL-00001" summary="upnew">
+      <option name="closed" value="true" />
+      <created>1785776709324</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1785776709324</updated>
+    </task>
+    <task id="LOCAL-00002" summary="upnew">
+      <option name="closed" value="true" />
+      <created>1785776751141</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1785776751141</updated>
+    </task>
+    <task id="LOCAL-00003" summary="upnew">
+      <option name="closed" value="true" />
+      <created>1785776768765</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1785776768765</updated>
+    </task>
+    <task id="LOCAL-00004" summary="upnew">
+      <option name="closed" value="true" />
+      <created>1786661218699</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1786661218700</updated>
+    </task>
+    <task id="LOCAL-00005" summary="upnew">
+      <option name="closed" value="true" />
+      <created>1786661256536</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1786661256536</updated>
+    </task>
+    <task id="LOCAL-00006" summary="upnew">
+      <option name="closed" value="true" />
+      <created>1786661375580</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1786661375580</updated>
+    </task>
+    <task id="LOCAL-00007" summary="upnew">
+      <option name="closed" value="true" />
+      <created>1786661471656</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1786661471656</updated>
+    </task>
+    <task id="LOCAL-00008" summary="upnew">
+      <option name="closed" value="true" />
+      <created>1786661555443</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1786661555443</updated>
+    </task>
+    <task id="LOCAL-00009" summary="upnew">
+      <option name="closed" value="true" />
+      <created>1786661810394</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1786661810394</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="upnew" />
+    <option name="LAST_COMMIT_MESSAGE" value="upnew" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
