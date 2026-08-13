@@ -1,0 +1,939 @@
+#configuracao.py
+import os
+from dotenv import load_dotenv
+
+
+ENV_PATH: str = '/home/akel/PycharmProjects/InsurMinds2026/.env'
+
+def carrega_variaveis_ambiente() -> None:
+    if os.path.exists(ENV_PATH):
+        load_dotenv(ENV_PATH, override=True)
+        print("✔ Variáveis de ambiente carregadas do arquivo .env")
+    else:
+        print(f"⚠ Aviso: Arquivo {ENV_PATH} não foi encontrado no diretório atual.")
+
+#mcp_helpers.py
+# =======================
+# Bibliotecas da standard library (Python)
+# =======================
+import warnings
+warnings.filterwarnings('ignore')
+# Sistema operacional: criação de diretórios, configuração e leitura de variáveis de ambiente
+import os
+
+# Informações e manipulação da execução do interpretador Python
+import sys
+
+# Expressões regulares
+import re
+
+# Manipulação de datas e horários
+import datetime
+
+# Execução de funções assíncronas
+import asyncio
+
+# Conexões seguras e cliente HTTP assíncrono
+import ssl
+import httpx
+
+# Manipulação de arquivos e diretórios de forma independente do sistema operacional
+from pathlib import Path
+
+# Identificadores únicos universais (UUID)
+from uuid import uuid4
+
+# Manipulação de CSV
+import pandas as pd
+
+# Tipagem estática (anotações e tipos auxiliares)
+from typing import Any, List, Union, TypedDict
+
+# Manipulação de XML
+from xml.etree import ElementTree as ET
+
+# Envio de e-mails (SMTP e MIME)
+from smtplib import SMTP, SMTP_SSL
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.utils import formataddr
+try:
+    from email import encoders
+except ImportError:
+    from email import Encoders as encoders
+
+# Leitura de variáveis de ambiente a partir de arquivos `.env`
+from dotenv import load_dotenv
+
+# Requisições HTTP (síncronas)
+import requests
+
+# Exibição de gráficos e imagens
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+
+# =======================
+# OpenAI
+# =======================
+
+from openai import OpenAI
+from openai.types.chat.chat_completion import ChatCompletion
+
+# =======================
+# Gemini
+# =======================
+
+import google.generativeai as gemini
+
+# =======================
+# LangChain
+# =======================
+
+# Configuração de debug do LangChain
+from langchain_core.globals import set_debug
+
+# Modelos LLM (Large Language Models)
+from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.language_models.chat_models import BaseChatModel
+
+# Construção de prompts
+from langchain_core.messages import HumanMessage
+
+from langchain_core.prompts import (
+    PromptTemplate,
+    ChatPromptTemplate,
+    MessagesPlaceholder,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate
+)
+
+# Parsers de saída
+from langchain_core.output_parsers import StrOutputParser
+
+# Runnables
+from langchain_core.runnables import RunnableLambda
+
+#from langchain_classic.agents import Tool, AgentExecutor, create_tool_calling_agent, create_react_agent
+
+
+# Criação e execução de agentes
+from langchain_classic.agents import(
+Tool,
+AgentExecutor,
+create_tool_calling_agent,
+create_react_agent)
+
+# from langchain.agents.agent import AgentExecutor
+# from langchain.agents.tool_calling import create_tool_calling_agent
+
+# Ferramentas
+from langchain_core.tools import Tool, tool
+from langchain_community.agent_toolkits.load_tools import load_tools
+from langchain_experimental.tools.python.tool import PythonAstREPLTool
+
+
+# # Ferramentas customizadas para agentes
+from langchain.tools import tool
+from langchain_community.agent_toolkits.load_tools import load_tools
+from langchain_experimental.tools.python.tool import PythonAstREPLTool
+
+# # Tipos de memória utilizados em agentes
+from langchain_classic.memory import ConversationBufferMemory
+
+# # Componentes de RAG (Retrieval-Augmented Generation)
+from langchain_chroma import Chroma  # Armazenamento vetorial
+from langchain_openai.embeddings import OpenAIEmbeddings  # Embeddings
+
+from langchain_text_splitters import RecursiveCharacterTextSplitter,MarkdownHeaderTextSplitter
+from langchain_community.document_loaders import PyPDFDirectoryLoader  # Leitura de documentos PDF
+
+# # Acesso ao hub LangChain de prompts prontos (https://smith.langchain.com/hub)
+from langchain_classic import hub
+
+# # =======================
+# # MCP (Model Context Protocol)
+# # =======================
+
+# # Servidor MCP
+from mcp.server.fastmcp import FastMCP
+
+# # Cliente MCP multi-servidor
+from langchain_mcp_adapters.client import MultiServerMCPClient
+
+# # =======================
+# # LangGraph
+# # =======================
+
+# # Criação de agentes com LangGraph
+from langgraph.prebuilt import create_react_agent as create_react_agent_graph
+
+# # Sistema de checkpoint em memória
+from langgraph.checkpoint.memory import InMemorySaver
+
+# # Definição e execução de grafos
+from langgraph.graph import StateGraph, END
+
+
+class ArxivHelper:
+
+    @property
+    def base_url(self):
+        return 'https://export.arxiv.org/api/query'
+
+    async def make_arxiv_request(self, url:str) -> str | None:
+        async with httpx.AsyncClient() as client:
+            try:
+                response = await client.get(url, headers={"User-Agent": 'arxiv-search-app/1.0'}, timeout=30)
+                response.raise_for_status()
+                return response.text
+            except Exception as e:
+                print(e)
+                return None
+
+    def parse_arxiv_response(self, xml_data:str) -> list[dict[str, Any]]:
+        if not xml_data:
+            return []
+
+        root = ET.fromstring(xml_data)
+
+        namespaces = {
+            "atom": 'http://www.w3.org/2005/Atom',
+            "arxiv": 'http://arxiv.org/schemas/atom'
+        }
+
+        entries = []
+        for entry in root.findall('.//atom:entry', namespaces):
+            e_title = entry.find('atom:title', namespaces)
+            e_summary = entry.find('atom:summary', namespaces)
+            e_link =  entry.find('atom:id', namespaces)
+            e_published = entry.find('atom:published', namespaces)
+
+            e_primary = entry.find('arxiv:primary_category',namespaces) #new
+
+            primary_category = (e_primary.attrib.get("term", "")
+                if e_primary is not None
+                else ""
+            ) #new
+
+            title = e_title.text.strip() if e_title is not None else ""
+            summary = e_summary.text.strip() if e_summary is not None else ""
+
+            authors = []
+            for author in entry.findall('.//atom:author/atom:name', namespaces):
+                authors.append(author.text.strip())
+
+            link = e_link.text.strip() if e_link is not None else ""
+            published = e_published.text.strip() if e_published is not None else ""
+
+            # entries.append(dict(
+            #     title=title,
+            #     summary=summary,
+            #     authors=authors,
+            #     link=link,
+            #     published=published
+            # )) original
+
+            entries.append(dict(
+                title=title,
+                summary=summary,
+                authors=authors,
+                link=link,
+                published=published,
+                primary_category=primary_category
+            )) #new
+
+        return entries
+
+    def filter_relevance(self,papers,query): #new
+        """
+            Filtra e ordena artigos por relevância em relação à consulta.
+
+            Regras:
+            - Palavra no título: +3
+            - Palavra no abstract: +1
+            - Palavra na categoria: +2
+
+            Retorna apenas artigos com score >= 3.
+            """
+
+        stopwords = {
+            "and", "or", "the", "of", "in", "on", "for", "to", "with",
+            "de", "da", "do", "dos", "das",
+            "e", "ou", "em", "para", "com", "a", "o", "as", "os"
+        }
+
+        keywords = [
+            w.lower()
+            for w in re.findall(r"\w+", query)
+            if len(w) > 2 and w.lower() not in stopwords
+        ]
+
+        ranked = []
+
+        for paper in papers:
+
+            title = paper.get("title", "").lower()
+            summary = paper.get("summary", "").lower()
+            category = paper.get("primary_category", "").lower()
+
+            score = 0
+
+            for kw in keywords:
+
+                if kw in title:
+                    score += 3
+
+                if kw in summary:
+                    score += 1
+
+                if kw in category:
+                    score += 2
+
+            ranked.append((score, paper))
+
+        ranked.sort(key=lambda x: x[0], reverse=True)
+
+        filtered = [
+            paper
+            for score, paper in ranked
+            if score >= 3
+        ]
+
+        # Caso nenhum artigo seja suficientemente relevante,
+        # retorna a lista original para evitar resposta vazia.
+        return filtered if filtered else papers
+
+    def format_paper(self, paper: dict) -> str:
+        """Formata os dados do artigo para retorno do MCP."""
+        title = paper.get('title', 'Sem título')
+        authors = ", ".join(paper.get('authors', []))
+        published = paper.get('published', '')[:4]  # Extrai apenas o ano (YYYY)
+        category = paper.get(
+            "primary_category",
+            "Não informado"
+        )
+        summary = paper.get('summary', '').replace('\n', ' ')
+        link = paper.get('link', paper.get('id', ''))  # Pega o link do arXiv
+
+        return (
+            f"Ano: {published}\n"
+            f"Título: {title}\n"
+            f"Autores: {authors}\n"
+            f"Link: {link}\n"
+            f"=== METADADOS ===\n"
+            f"Conteúdo recuperado: Abstract\n"
+            f"Texto completo: Não\n\n"
+            f"=== ABSTRACT ===\n"
+            f"Resumo: {summary}"
+        )
+
+
+class MailRecipient(object):
+
+    def __init__(self):
+        self.__recipients: List = []
+
+    def add(self, email: str, name: str = None):
+        if not name:
+            self.__recipients.append(email)
+        else:
+            self.__recipients.append(formataddr((name, email)))
+
+    def clear(self):
+        self.__recipients = []
+
+    def get(self) -> str:
+        return ', '.join(self.__recipients)
+
+    def has_item(self) -> bool:
+        if not self.__recipients:
+            return False
+        return len(self.__recipients) > 0
+
+
+class MailMessage(object):
+
+    def __init__(self, sender_email: str, sender_name: str = None):
+        self.__message: MIMEMultipart = MIMEMultipart()
+        self.__from: str = sender_email
+        self.__from_name: str = sender_name
+        self.__body: Union[str, None] = None
+        self.__subject: Union[str, None] = None
+        self.to: MailRecipient = MailRecipient()
+        self.cc: MailRecipient = MailRecipient()
+        self.bcc: MailRecipient = MailRecipient()
+
+    def get_message(self) -> MIMEMultipart:
+        self.__message['From'] = formataddr((self.__from_name, self.__from)) if self.__from_name else self.__from
+        self.__message['Subject'] = self.__subject
+        self.__message['To'] = self.to.get()
+        if self.cc.has_item():
+            self.__message['Cc'] = self.cc.get()
+        if self.bcc.has_item():
+            self.__message['Bcc'] = self.bcc.get()
+        self.__message.attach(self.__body)
+        self.__validate_mail_message()
+        return self.__message
+
+    def set_subject(self, subject: str):
+        self.__subject = subject
+
+    def set_text_body(self, text):
+        self.__body = MIMEText(text, "plain")
+
+    def set_html_body(self, html):
+        self.__body = MIMEText(html, "html")
+
+    def attach_file(self, filename: str, mime_type: str = "application/octet-stream"):
+        with open(filename, 'rb') as attachment:
+            mime_type_parts: List[str] = mime_type.split('/')
+            part: MIMEBase = MIMEBase(mime_type_parts[0], mime_type_parts[1])
+            part.set_payload(attachment.read())
+        encoders.encode_base64(part)
+        part.add_header("Content-Disposition", f"attachment; filename= {Path(filename).name}")
+        self.__message.attach(part)
+
+    def __validate_mail_message(self):
+        if not self.__subject:
+            raise ValueError("The email subject is required.")
+        if not self.__body:
+            raise ValueError("The email body is required.")
+        if not self.__message['From']:
+            raise ValueError('From is required.')
+        if len(self.__message['From']) == 0:
+            raise ValueError("The sender (from) is required.")
+        if not self.to.has_item() and not self.cc.has_item() and not self.bcc.has_item():
+            raise ValueError("Add at least a email to send this message.")
+
+
+class SMTPServer(object):
+
+    def __init__(self, host: str, port: int = 587,
+                 username: str = None, password: str = None,
+                 has_ssl: bool = False, has_tls: bool = True,
+                 has_authentication: bool = True):
+
+        self.__host: str = host
+        self.__port: int = port
+        self.__username: str = username
+        self.__password: str = password
+        self.__tls: bool = has_tls
+        self.__ssl: bool = has_ssl
+        self.__authentication: bool = has_authentication
+        self.__context = ssl.create_default_context()
+
+    def connect(self) -> Union[SMTP, SMTP_SSL]:
+        try:
+            if self.__tls:
+                self.__server = SMTP(host=self.__host, port=self.__port)
+                self.__server.ehlo()
+                self.__server.starttls(context=self.__context)
+                self.__server.ehlo()
+            elif self.__ssl:
+                self.__server = SMTP_SSL(host=self.__host, port=self.__port, context=self.__context)
+            else:
+                self.__server = SMTP(host=self.__host, port=self.__port)
+
+            if self.__authentication:
+                self.__server.login(user=self.__username, password=self.__password)
+
+        except Exception as e:
+            if self.__server:
+                self.disconnect()
+            raise e
+        return self.__server
+
+    def disconnect(self):
+        self.__check_connection()
+        self.__server.quit()
+
+    def send(self, mail_message: MailMessage) -> bool:
+        self.__check_connection()
+        self.__server.send_message(msg=mail_message.get_message())
+        return True
+
+    def get_sender(self) -> str:
+        return self.__username
+
+    def __check_connection(self):
+        if not self.__server:
+            raise ConnectionError("The server is not connected. Connect first.")
+
+# mcp_server.py
+import re
+import os
+import asyncio
+import warnings
+
+warnings.filterwarnings('ignore')
+
+# Servidor MCP
+from mcp.server.fastmcp import FastMCP
+from mcp_helpers import ArxivHelper, MailMessage, SMTPServer
+from configuracao import carrega_variaveis_ambiente
+import markdown  # <-- Verifique se está aqui
+carrega_variaveis_ambiente()
+from urllib.parse import quote
+import re
+import markdown
+import asyncio
+import os
+import warnings
+
+
+
+async def search_arxiv_tool(query: str, max_results: int = 10) -> str:
+    """
+    Esta ferramenta busca por artigos científicos no site arxiv.org.
+    Suporta busca por termos e intervalos de anos (ex: 2020-2025, 2015 a 2018).
+
+
+
+    Args:
+        query (str): O assunto e/ou intervalo de datas (ex: "modelling VLF Wave 2020-2025").
+        max_results (int, optional): Quantidade máxima de artigos retornados. O padrão é 5.
+    """
+
+    print("=" * 80)
+    print("search_arxiv_tool FOI CHAMADA")
+    print("Consulta recebida:", query)
+    print("=" * 80)
+    try:
+        arxiv_mcp_tool = ArxivHelper()
+
+        # 1. Mapeamento de termos comuns em português
+        query_map = {
+            "ia": "artificial intelligence",
+            "inteligencia artificial": "artificial intelligence",
+            "inteligência artificial": "artificial intelligence"
+        }
+
+        # 2. Expressão regular para capturar intervalos de anos (ex: 2015-2020, 2020 a 2025)
+        date_pattern = r'\b(19\d\d|20\d\d)\s*(?:-|a|até|to)\s*(19\d\d|20\d\d)\b'
+        match = re.search(date_pattern, query, re.IGNORECASE)
+
+        date_clause = ""
+        clean_query = query
+
+        if match:
+            start_year, end_year = match.group(1), match.group(2)
+            # Monta o filtro de data nativo da API do arXiv (YYYY0101000000 TO YYYY1231235959)
+            date_clause = f"+AND+submittedDate:[{start_year}0101000000+TO+{end_year}1231235959]"
+            # Remove o intervalo do texto de busca para não poluir a busca por palavras-chave
+            clean_query = re.sub(date_pattern, '', query, flags=re.IGNORECASE).strip()
+
+        # Aplica o mapeamento se necessário
+       # search_term = query_map.get(clean_query.lower(), clean_query) #original
+       # formatted_query = search_term.replace(" ", '+')  #original
+
+        # 3. Monta a URL da API do arXiv com o filtro de data (se houver)
+        # url = (
+        #     f"{arxiv_mcp_tool.base_url}?"
+        #     f"search_query=all:{formatted_query}{date_clause}&"
+        #     f"start=0&max_results={max_results}&"
+        #     f"sortBy=submittedDate&sortOrder=descending"
+        # ) #original
+
+        search_term = query_map.get(clean_query.lower(), clean_query)
+        search_arxiv_tool
+        formatted_query = quote(f'"{search_term}"')
+
+        url = (
+            f"{arxiv_mcp_tool.base_url}?"
+            f"search_query=all:{formatted_query}{date_clause}&"
+            f"start=0&max_results={max_results}&"
+            f"sortBy=submittedDate&sortOrder=descending"
+        )
+
+
+
+
+
+        xml_data = await arxiv_mcp_tool.make_arxiv_request(url)
+        if not xml_data:
+            return "Não foi possível recuperar os dados do arXiv."
+
+        papers = arxiv_mcp_tool.parse_arxiv_response(xml_data)
+
+        print(f"Artigos encontrados: {len(papers)}")
+
+        for i, paper in enumerate(papers, start=1):
+            print(f"\nArtigo {i}")
+            print("Título:", paper["title"])
+
+
+        if not papers:
+            return f"Nenhum artigo encontrado para a busca '{clean_query}' no período especificado."
+
+        # Filtra e ordena por relevância
+        papers = arxiv_mcp_tool.filter_relevance(
+            papers,
+            clean_query
+        ) #new
+
+        paper_texts = [arxiv_mcp_tool.format_paper(paper) for paper in papers]
+        return "\n---\n".join(paper_texts)
+
+    except Exception as e:
+        return f"ERRO ao buscar no arXiv: {str(e)}"
+
+
+def _send_mail_sync(subject: str, email_to: str, email_content: str, email_attach_file: str = None) -> str:
+    """Função síncrona interna para conexão e envio SMTP."""
+    username = os.getenv('SMTP_USERNAME', 'albertoakel@gmail.com')
+    password = os.getenv('SMTP_PASSWORD')
+
+    if not password:
+        return "ERRO: Variável SMTP_PASSWORD não configurada no arquivo .env."
+
+    # Configuração correta para Porta 587 do Gmail (TLS=True, SSL=False)
+    smtp = SMTPServer(
+        host='smtp.gmail.com',
+        port=587,
+        username=username,
+        password=password,
+        has_ssl=False,
+        has_tls=True,
+        has_authentication=True
+    )
+
+    sender_email = username
+    sender_name = 'Alberto Akel'
+
+    message = MailMessage(sender_email=sender_email, sender_name=sender_name)
+    message.set_subject(subject=subject)
+
+    for email in re.split(r'[,;]', email_to):
+        email = email.strip()
+        if email:
+            message.to.add(email=email)
+    #html_body = markdown.markdown(email_content)  #novo
+    html_body = markdown.markdown(email_content, extensions=['nl2br']) #novo
+    message.set_html_body(html_body)          #novo
+    #message.set_html_body(email_content)
+
+
+    # Tratamento para evitar erro quando o modelo envia a string "None" ou "null"
+    if email_attach_file and str(email_attach_file).strip().lower() not in ("none", "null", ""):
+        if not os.path.isfile(email_attach_file):
+            return f"ERRO: Arquivo para anexo não encontrado em: {email_attach_file}"
+        message.attach_file(filename=email_attach_file)
+
+    try:
+        smtp.connect()
+        smtp.send(message)
+        smtp.disconnect()
+        return 'E-mail enviado com sucesso!'
+    except Exception as e:
+        return f"ERRO ao enviar e-mail: {str(e)}"
+
+
+async def send_mail(subject: str, email_to: str, email_content: str, email_attach_file: str = None) -> str:
+    """
+    Esta ferramenta envia um e-mail para uma pessoa.
+
+    Args:
+        subject (str): Assunto do e-mail (título curto).
+        email_to (str): E-mail do destinatário (pode conter múltiplos e-mails separados por "," ou ";").
+        email_content (str): Conteúdo do corpo do e-mail em texto/HTML.
+        email_attach_file (str, optional): Caminho absoluto de um arquivo para anexar. Padrão é None.
+    """
+    # Executa a função síncrona em uma thread separada sem travar o loop de eventos assíncrono
+    return await asyncio.to_thread(_send_mail_sync, subject, email_to, email_content, email_attach_file)
+
+
+if __name__ == "__main__":
+    print("Iniciando o servidor MCP...")
+    mcp = FastMCP(name="DataH_MCP", port=5008)
+    print('URL para verificação: "http://localhost:5008/sse"')
+    mcp.add_tool(search_arxiv_tool)
+    mcp.add_tool(send_mail)
+    mcp.run(transport='sse')# mcp_client.py
+# =======================
+# Bibliotecas da standard library (Python)
+# =======================
+
+# import os
+# import asyncio
+# from uuid import uuid4
+#
+# from dotenv import load_dotenv
+# from langchain_google_genai import ChatGoogleGenerativeAI
+# from langchain_mcp_adapters.client import MultiServerMCPClient
+# from langgraph.prebuilt import create_react_agent as create_react_agent_graph
+# from langgraph.checkpoint.memory import InMemorySaver
+#
+# import warnings
+# warnings.filterwarnings('ignore')
+# Sistema operacional: criação de diretórios, configuração e leitura de variáveis de ambiente
+import os
+
+# Informações e manipulação da execução do interpretador Python
+import sys
+
+# Expressões regulares
+import re
+
+# Manipulação de datas e horários
+import datetime
+
+# Execução de funções assíncronas
+import asyncio
+
+# Conexões seguras e cliente HTTP assíncrono
+import ssl
+import httpx
+
+# Manipulação de arquivos e diretórios de forma independente do sistema operacional
+from pathlib import Path
+
+# Identificadores únicos universais (UUID)
+from uuid import uuid4
+
+# Manipulação de CSV
+import pandas as pd
+
+# Tipagem estática (anotações e tipos auxiliares)
+from typing import Any, List, Union, TypedDict
+
+# Manipulação de XML
+from xml.etree import ElementTree as ET
+
+# Envio de e-mails (SMTP e MIME)
+from smtplib import SMTP, SMTP_SSL
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.utils import formataddr
+try:
+    from email import encoders
+except ImportError:
+    from email import Encoders as encoders
+
+# Leitura de variáveis de ambiente a partir de arquivos `.env`
+from dotenv import load_dotenv
+
+# Requisições HTTP (síncronas)
+import requests
+
+# Exibição de gráficos e imagens
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+
+# =======================
+# OpenAI
+# =======================
+
+from openai import OpenAI
+from openai.types.chat.chat_completion import ChatCompletion
+
+# =======================
+# Gemini
+# =======================
+
+import google.generativeai as gemini
+
+# =======================
+# LangChain
+# =======================
+
+# Configuração de debug do LangChain
+from langchain_core.globals import set_debug
+
+# Modelos LLM (Large Language Models)
+from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.language_models.chat_models import BaseChatModel
+
+# Construção de prompts
+from langchain_core.messages import HumanMessage
+
+from langchain_core.prompts import (
+    PromptTemplate,
+    ChatPromptTemplate,
+    MessagesPlaceholder,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate
+)
+
+# Parsers de saída
+from langchain_core.output_parsers import StrOutputParser
+
+# Runnables
+from langchain_core.runnables import RunnableLambda
+
+#from langchain_classic.agents import Tool, AgentExecutor, create_tool_calling_agent, create_react_agent
+
+
+# Criação e execução de agentes
+from langchain_classic.agents import(
+Tool,
+AgentExecutor,
+create_tool_calling_agent,
+create_react_agent)
+
+# from langchain.agents.agent import AgentExecutor
+# from langchain.agents.tool_calling import create_tool_calling_agent
+
+# Ferramentas
+from langchain_core.tools import Tool, tool
+from langchain_community.agent_toolkits.load_tools import load_tools
+from langchain_experimental.tools.python.tool import PythonAstREPLTool
+
+
+# # Ferramentas customizadas para agentes
+from langchain.tools import tool
+from langchain_community.agent_toolkits.load_tools import load_tools
+from langchain_experimental.tools.python.tool import PythonAstREPLTool
+
+# # Tipos de memória utilizados em agentes
+from langchain_classic.memory import ConversationBufferMemory
+
+# # Componentes de RAG (Retrieval-Augmented Generation)
+from langchain_chroma import Chroma  # Armazenamento vetorial
+from langchain_openai.embeddings import OpenAIEmbeddings  # Embeddings
+
+from langchain_text_splitters import RecursiveCharacterTextSplitter,MarkdownHeaderTextSplitter
+from langchain_community.document_loaders import PyPDFDirectoryLoader  # Leitura de documentos PDF
+
+# # Acesso ao hub LangChain de prompts prontos (https://smith.langchain.com/hub)
+from langchain_classic import hub
+
+# # =======================
+# # MCP (Model Context Protocol)
+# # =======================
+
+# # Servidor MCP
+from mcp.server.fastmcp import FastMCP
+
+# # Cliente MCP multi-servidor
+from langchain_mcp_adapters.client import MultiServerMCPClient
+
+# # =======================
+# # LangGraph
+# # =======================
+
+# # Criação de agentes com LangGraph
+from langgraph.prebuilt import create_react_agent as create_react_agent_graph
+
+# # Sistema de checkpoint em memória
+from langgraph.checkpoint.memory import InMemorySaver
+
+# # Definição e execução de grafos
+from langgraph.graph import StateGraph, END
+
+# # =======================
+# # Outros
+# # =======================
+
+# # Ignora avisos durante a execução
+from IPython import get_ipython
+
+import warnings
+warnings.filterwarnings('ignore')
+
+ENV_PATH = '/home/akel/PycharmProjects/InsurMinds2026/.env'
+if os.path.exists(ENV_PATH):
+    load_dotenv(ENV_PATH, override=True)
+    if os.getenv("GOOGLE_API"):
+        os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API")
+
+server_params = {
+    # "local-server-tools": {
+    #     "command": "C:\\Dados\\Projetos\\aulas\\agent\\.venv\\Scripts\\python.exe",
+    #     "args": ["C:/Dados/Projetos/aulas/agent/src/mcp_server.py"],
+    #     "transport": "stdio",
+    # },
+    "server-tools": {
+        "url": "http://127.0.0.1:5008/sse",
+        "transport": "sse",
+    }
+}
+
+async def run_agent():
+    # Instanciamos o modelo explicitamente com a chave
+    model = ChatGoogleGenerativeAI(
+        model="gemini-3.1-flash-lite", # Ou o modelo de sua preferência
+        temperature=0,
+        google_api_key=os.getenv("GOOGLE_API")
+    )
+    checkpointer = InMemorySaver()
+
+    # 1. Instanciação direta (sem o 'async with')
+    client = MultiServerMCPClient(server_params)
+
+    # 2. Obtenção assíncrona das ferramentas (com 'await')
+    all_tools = await client.get_tools()
+
+    if not all_tools:
+        print("\033[31mNenhuma ferramenta disponível no servidor MCP.\033[0m")
+    else:
+        print("\033[31m\n==== Ferramentas MCP Carregadas ====\033[0m")
+        for tool in all_tools:
+            print(f'\033[35m* {tool.name} *\033[0m\n{tool.description}\n')
+
+    prompt = """
+        Sua tarefa é solucionar as perguntas do usuário, usando as ferramentas disponíveis.
+        Responda sempre em português. 
+        
+        
+        Quando utilizar a ferramenta search_arxiv_tool:
+        A ferramenta retorna apenas Título, autores, link e abstract. Jamais invente qualquer uma dessas informações.
+        Considere que o texto completo NÃO foi recuperado.
+        É proibido inferir metodologia, experimentos, resultados ou conclusões que não estejam explicitamente descritos no abstract.
+        Caso essas informações não estejam disponíveis, informe que não foi possivel. jamais quebre essa regra.
+    
+       
+        Sobre formato de eenvio por email. Formate o corpo do e-mail estritamente nesta estrutura:
+        
+        **[ano] título do artigo original **
+        
+        **Autores:** nome dos autores
+        
+        Resumo do artigo...
+        
+        **Fonte:** [Ver no arXiv](URL_REAL)        
+
+       **[ano] título do artigo original**
+       **Autores:** nome dos autores
+       Resumo do artigo...
+       
+    """
+    agent = create_react_agent_graph(model, all_tools, checkpointer=checkpointer, prompt=prompt)
+
+    session_id = str(uuid4())
+    config = {"configurable": {"thread_id": session_id}}
+
+    while True:
+        user_input = input("\033[33mFaça a sua pergunta: \033[0m")
+
+        if user_input.strip().lower() == "sair":
+            break
+
+        if user_input.strip().lower() == "limpar":
+            print("\033c")
+            continue
+
+        print(f"\033[34mUsuário: {user_input}\033[0m")
+
+        # Invocação do agente
+        agent_response = await agent.ainvoke(
+            {"messages": [("user", user_input)]},
+            config=config
+        )
+         # Tratamento do formato da mensagem final
+        last_msg = agent_response['messages'][-1].content
+        if isinstance(last_msg, list):
+            response_text = "".join([block.get("text", "") for block in last_msg if isinstance(block, dict)])
+        else:
+            response_text = str(last_msg)
+
+        print(f"\033[32mAgente: {agent_response['messages'][-1].content}\033[0m")
+
+
+if __name__ == "__main__":
+    asyncio.run(run_agent())
