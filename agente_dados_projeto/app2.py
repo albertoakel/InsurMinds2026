@@ -105,7 +105,7 @@ html, body, [class*="css"] {
 
 st.markdown("""
 <div class="app-header">
-    <h1>📊 Agente Inteligente para Dados Fiscais</h1>
+    <h1> 📊 Agente Inteligente para Dados Fiscais</h1>
     <p>Envie notas fiscais (CSV ou XML), acompanhe os indicadores e converse com o assistente para explorar os dados.</p>
 </div>
 """, unsafe_allow_html=True)
@@ -134,7 +134,7 @@ if "mensagens" not in st.session_state:
 # ========================================================================
 # Interface A — Carga dos dados (mantida como estava)
 # ========================================================================
-st.sidebar.header("Interface A — Carga dos dados")
+st.sidebar.header("Upload")
 
 arquivo_zip = st.sidebar.file_uploader(
     "Envie um arquivo ZIP",
