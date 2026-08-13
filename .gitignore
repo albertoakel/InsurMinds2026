@@ -32,6 +32,7 @@ organização.txt
 *.csv
 *.zip
 *.pdf
+*.bin
 agente_dados_projeto/sandbox/
 notebooks/documentosvectorstore/
 
