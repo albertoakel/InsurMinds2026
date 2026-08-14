@@ -24,7 +24,7 @@ def criar_agente(tabelas, dicionario_texto):
     ]
 
     modelo = ChatGoogleGenerativeAI(
-        model=LLM_MODELS[1],
+        model=LLM_MODELS[2],
         temperature=0,
         # Gemini 3.x usa "thinking_level" para controlar o quanto o modelo
         # "pensa" antes de responder. Sem isso, o padrão é "high", que é
