@@ -99,7 +99,7 @@ GOOGLE_API_KEY=sua_chave_aqui
 ### 5. Execute a aplicação
 
 ```bash
-streamlit run app2.py
+streamlit run app.py
 ```
 
 Acesse `http://localhost:8501` no navegador, envie um `.zip` com as notas fiscais (CSV e/ou XML) pela barra lateral e clique em **Processar dados**.

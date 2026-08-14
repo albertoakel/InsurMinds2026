@@ -1,4 +1,4 @@
-#app2.py
+#app.py
 import os
 import tempfile
 import warnings
@@ -20,7 +20,7 @@ from src.kpis import (
     grafico_top_categorias,
     grafico_top_produtos,
     grafico_valor_por_categoria,
-    identificar_tabelas,
+    identificar_tabelas,_normalizar
 )
 
 load_dotenv()
@@ -106,7 +106,7 @@ html, body, [class*="css"] {
 
 st.markdown("""
 <div class="app-header">
-    <h1> 📊 Agente Inteligente para Dados Fiscais</h1>
+    <h1> Agente Inteligente para Dados Fiscais</h1>
     <p>Envie notas fiscais (CSV ou XML), acompanhe os indicadores e converse com o assistente para explorar os dados.</p>
 </div>
 """, unsafe_allow_html=True)
@@ -245,7 +245,6 @@ else:
     tabelas = st.session_state.tabelas
     kpis_dados = calcular_kpis(tabelas)
     nome_notas, df_notas, nome_itens, df_itens = identificar_tabelas(tabelas)
-
     # ---------------------------- KPIs ---------------------------------
     col1, col2, col3, col4 = st.columns(4)
 
@@ -325,7 +324,7 @@ else:
             fig_hora = grafico_distribuicao_hora(df_notas) if df_notas is not None else None
 
             if fig_hora is not None:
-                st.plotly_chart(fig_hora, use_container_width=True)
+                st.plotly_chart(fig_hora, width="stretch")
             else:
                 st.info("Coluna de hora não encontrada nos dados carregados.")
 
@@ -342,23 +341,24 @@ else:
         if df_notas is None:
             st.info("Nenhuma tabela com dados de UF foi identificada.")
         else:
-            col_uf_emit = achar_coluna(df_notas, ["uf", "emit"], ["uf"])
-            col_uf_dest = achar_coluna(df_notas, ["uf", "dest"])
-            col_valor_nota = achar_coluna(df_notas, ["valor", "nota"], ["valor", "total"])
+            col_uf_emit = achar_coluna(df_notas,["uf", "emit"])
+            col_uf_dest = achar_coluna(df_notas,["uf", "dest"])
+            col_valor_nota = achar_coluna(df_notas,["valor", "nota", "fiscal"])
+
 
             col_a, col_b = st.columns(2)
 
             with col_a:
                 fig = grafico_top_categorias(df_notas, col_uf_emit, "Top 10 UF — Emitente")
                 if fig is not None:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width="stretch")
                 else:
                     st.info("Coluna de UF do emitente não encontrada.")
 
             with col_b:
                 fig = grafico_top_categorias(df_notas, col_uf_dest, "Top 10 UF — Destinatário")
                 if fig is not None:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width="stretch")
                 else:
                     st.info("Coluna de UF do destinatário não encontrada.")
 
@@ -366,7 +366,7 @@ else:
                 df_notas, col_uf_emit, col_valor_nota, "Valor Total por UF — Emitente"
             )
             if fig is not None:
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
             else:
                 st.info("Não foi possível calcular valor por UF com as colunas disponíveis.")
 
@@ -379,14 +379,14 @@ else:
             with col_a:
                 fig = grafico_top_produtos(df_itens, metrica="valor")
                 if fig is not None:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width="stretch")
                 else:
                     st.info("Não foi possível montar o ranking de produtos por valor.")
 
             with col_b:
                 fig = grafico_top_produtos(df_itens, metrica="quantidade")
                 if fig is not None:
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, width="stretch")
                 else:
                     st.info("Não foi possível montar o ranking de produtos por quantidade.")
 
@@ -396,7 +396,7 @@ else:
         else:
             fig = grafico_itens_por_dia(df_itens)
             if fig is not None:
-                st.plotly_chart(fig, use_container_width=True)
+                st.plotly_chart(fig, width="stretch")
             else:
                 st.info("Coluna de data de emissão não encontrada ou não convertida para data.")
 
@@ -427,3 +427,4 @@ fiscais e consulta via chatbot em linguagem natural.**
             st.session_state.dicionario.astype(str),
             hide_index=True
         )
+

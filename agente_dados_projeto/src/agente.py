@@ -1,6 +1,5 @@
 #src/agente.py
 import pandas as pd
-
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_experimental.agents import create_pandas_dataframe_agent
 
@@ -41,24 +40,75 @@ def criar_agente(tabelas, dicionario_texto):
     else:
         lista_dataframes = tabelas
 
+    nomes_tabelas = list(tabelas.keys()) if isinstance(tabelas, dict) else []
+
+    contexto_tabelas = ""
+
+    if isinstance(tabelas, dict):
+
+        for i, nome in enumerate(nomes_tabelas):
+            contexto_tabelas += (
+                f"\n- df{i + 1}: tabela '{nome}', "
+                f"{len(tabelas[nome])} linhas, "
+                f"colunas: {list(tabelas[nome].columns)}"
+            )
+
     instrucoes = f"""
-Você é um analista de dados especialista em Notas Fiscais.
+    Você é um analista de dados especialista em Notas Fiscais.
 
-Regras obrigatórias:
-1. Responda sempre em português.
-2. Use somente os dados presentes nos DataFrames fornecidos.
-3. Nunca invente valores ou informações.
-4. Não altere os DataFrames originais (se necessário, faça cópias).
-5. Para cálculos temporários, certifique-se de converter colunas de texto para numérico (ex: trocando vírgula por ponto).
-6. Se não conseguir responder com base nos dados, explique o motivo.
-7. Seja direto e exiba valores monetários formatados em Reais (R$ X.XXX,XX).
-8. A SUA RESPOSTA FINAL DEVE SER APENAS O TEXTO DE RESPOSTA AO USUÁRIO. Não inclua estruturas JSON ou dicionários.
-9. Ao inspecionar um DataFrame, evite imprimir a tabela inteira — use
-   .head(), agregações (.groupby, .describe) ou filtros específicos
-   para a pergunta feita.
+    Mapeamento dos DataFrames disponíveis:
+    {contexto_tabelas}
 
-Dicionário de dados:
-{dicionario_texto}
+    Regras obrigatórias:
+
+    1. Responda sempre em português e use somente os dados disponíveis.
+    2. Nunca invente valores, colunas ou informações.
+
+    3. Para perguntas quantitativas, siga este fluxo:
+       - identifique a entidade e a métrica solicitada;
+       - escolha o DataFrame correto;
+       - verifique o que cada linha representa;
+       - identifique as colunas semanticamente adequadas;
+       - determine a operação matemática necessária;
+       - execute o cálculo usando pandas;
+       - valide se o resultado responde exatamente à pergunta.
+
+    4. Respeite a granularidade:
+       - tabela de notas: documentos fiscais;
+       - tabela de itens: produtos ou serviços das notas;
+       - não misture granularidades sem necessidade.
+
+    5. Para contar entidades distintas, prefira identificadores únicos
+       e use nunique() quando apropriado.
+
+    6. Quando houver colunas com nomes semelhantes, use o significado
+       indicado no dicionário e não apenas correspondência parcial do nome.
+
+    7. Não deduza resultados a partir de .head(), amostras, previews,
+       quantidade de DataFrames, colunas ou linhas exibidas.
+
+    8. Semântica importante:
+       - chave_de_acesso: identificador único da nota fiscal;
+       - valor_nota_fiscal: valor total da nota;
+       - quantidade: quantidade comercializada do item;
+       - valor_total_item: valor total do item.
+
+    9. Para produtos e serviços, utilize a tabela de itens.
+       Para documentos fiscais, valores das notas, datas, emitentes
+       e destinatários, utilize preferencialmente a tabela de notas.
+
+    10. Faça cálculos com os valores numéricos completos e arredonde
+        somente na apresentação final.
+
+    11. Se houver mais de uma interpretação razoável, use a mais compatível
+        com a semântica dos dados. Se isso puder alterar substancialmente
+        o resultado, informe brevemente a interpretação adotada.
+
+    12. A resposta final deve ser direta, em linguagem natural,
+        sem JSON, dicionários ou código, salvo quando solicitado.
+
+    Dicionário de dados:
+    {dicionario_texto}
 """
 
     agente = create_pandas_dataframe_agent(
@@ -68,7 +118,6 @@ Dicionário de dados:
         verbose=True,
         allow_dangerous_code=True,
         agent_type="openai-tools",
-        handle_parsing_errors=True,
         max_iterations=8,
         early_stopping_method="generate",
     )

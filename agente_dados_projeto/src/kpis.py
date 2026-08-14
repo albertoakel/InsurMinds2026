@@ -52,65 +52,233 @@ def _normalizar(texto):
     return texto
 
 
-def achar_coluna(df, *grupos_palavras):
+def achar_coluna(df, *grupos_palavras, exata=False):
     """
-    Procura, em ordem de prioridade, a primeira coluna cujo nome
-    (normalizado) contenha TODAS as palavras de algum dos grupos.
+    Procura colunas por nome normalizado. vs2
 
-    Exemplo: achar_coluna(df, ["uf", "emit"], ["uf"]) primeiro tenta achar
-    uma coluna com "uf" E "emit" no nome; se não achar nenhuma, tenta
-    achar qualquer coluna que tenha só "uf".
+    exata=False:
+        procura colunas que contenham todas as palavras do grupo.
+
+    exata=True:
+        procura correspondência exata com o nome normalizado.
     """
-    colunas_norm = {coluna: _normalizar(coluna) for coluna in df.columns}
+
+    colunas_norm = {
+        coluna: _normalizar(coluna)
+        for coluna in df.columns
+    }
 
     for grupo in grupos_palavras:
         palavras_norm = [_normalizar(p) for p in grupo]
+
         for coluna, nome_norm in colunas_norm.items():
-            if all(p in nome_norm for p in palavras_norm):
-                return coluna
+
+            if exata:
+                if len(palavras_norm) == 1 and nome_norm == palavras_norm[0]:
+                    return coluna
+
+            else:
+                if all(p in nome_norm for p in palavras_norm):
+                    return coluna
 
     return None
 
 
+
 def identificar_tabelas(tabelas: dict):
     """
-    Tenta identificar, entre as tabelas carregadas, qual é a tabela de
-    "notas" (cabeçalho da NF-e, 1 linha por nota) e qual é a de "itens"
-    (1 linha por produto/serviço da nota).
+    Identifica semanticamente as tabelas de notas fiscais e itens.
 
-    Retorna (nome_notas, df_notas, nome_itens, df_itens); qualquer um
-    dos dois pode vir como None se não for identificado.
+    A identificação é baseada na estrutura das colunas, e não no nome
+    do arquivo.
+
+    Tabela de notas:
+        Uma linha representa uma NF.
+
+    Tabela de itens:
+        Uma linha representa um item/produto de uma NF.
     """
+
     candidata_notas = None
     candidata_itens = None
 
+    melhor_score_notas = -1
+    melhor_score_itens = -1
+
     for nome, df in tabelas.items():
+
         if df is None or df.empty:
             continue
 
-        tem_valor_nota = achar_coluna(df, ["valor", "nota"]) is not None
-        tem_uf = achar_coluna(df, ["uf"]) is not None
-        tem_produto = achar_coluna(df, ["produto"]) is not None
-        tem_ncm = achar_coluna(df, ["ncm"]) is not None
-        tem_quantidade = achar_coluna(df, ["quantidade"]) is not None
+        # ---------------------------------------------------------
+        # Normalização dos nomes das colunas
+        # ---------------------------------------------------------
+        colunas = {
+            _normalizar(str(c))
+            for c in df.columns
+        }
 
-        if candidata_notas is None and (tem_valor_nota or tem_uf):
+        # =========================================================
+        # SCORE — TABELA DE NOTAS
+        # =========================================================
+
+        score_notas = 0
+
+        # Identificador da NF
+        if "chave_de_acesso" in colunas:
+            score_notas += 15
+
+        if "numero" in colunas:
+            score_notas += 8
+
+        if "serie" in colunas:
+            score_notas += 5
+
+        # Data/hora da NF
+        if "data_emissao" in colunas:
+            score_notas += 8
+
+        # Valor total da NF
+        if "valor_nota_fiscal" in colunas:
+            score_notas += 15
+
+        # Dados do emitente/destinatário
+        if "cpf/cnpj_emitente" in colunas:
+            score_notas += 3
+
+        if "razao_social_emitente" in colunas:
+            score_notas += 3
+
+        if "uf_emitente" in colunas:
+            score_notas += 3
+
+        if "uf_destinatario" in colunas:
+            score_notas += 3
+
+        # =========================================================
+        # SCORE — TABELA DE ITENS
+        # =========================================================
+
+        score_itens = 0
+
+        # Identificação do produto
+        if "numero_produto" in colunas:
+            score_itens += 10
+
+        if "descricao_do_produto/servico" in colunas:
+            score_itens += 15
+
+        # Quantidade e valores
+        if "quantidade" in colunas:
+            score_itens += 12
+
+        if "unidade" in colunas:
+            score_itens += 5
+
+        if "valor_unitario" in colunas:
+            score_itens += 8
+
+        if "valor_total_item" in colunas:
+            score_itens += 15
+
+        # Informações fiscais do item
+        if "codigo_ncm/sh" in colunas:
+            score_itens += 5
+
+        if "cfop" in colunas:
+            score_itens += 5
+
+        # =========================================================
+        # Guarda a melhor tabela de NOTAS
+        # =========================================================
+
+        if score_notas > melhor_score_notas:
+            melhor_score_notas = score_notas
             candidata_notas = nome
 
-        if candidata_itens is None and (tem_produto or tem_ncm) and tem_quantidade:
+        # =========================================================
+        # Guarda a melhor tabela de ITENS
+        # =========================================================
+
+        if score_itens > melhor_score_itens:
+            melhor_score_itens = score_itens
             candidata_itens = nome
 
-    # Se só existir uma tabela, ela serve para os dois papéis
-    if candidata_notas is None and len(tabelas) >= 1:
-        candidata_notas = next(iter(tabelas))
-    if candidata_itens is None and len(tabelas) >= 1:
-        candidata_itens = candidata_notas or next(iter(tabelas))
+    # =============================================================
+    # Evita que a mesma tabela seja escolhida para os dois papéis
+    # =============================================================
 
-    df_notas = tabelas.get(candidata_notas) if candidata_notas else None
-    df_itens = tabelas.get(candidata_itens) if candidata_itens else None
+    if candidata_notas == candidata_itens:
 
-    return candidata_notas, df_notas, candidata_itens, df_itens
+        # Procurar outra tabela para itens
+        melhor_outro_score = -1
+        melhor_outro_nome = None
 
+        for nome, df in tabelas.items():
+
+            if nome == candidata_notas:
+                continue
+
+            if df is None or df.empty:
+                continue
+
+            colunas = {
+                _normalizar(str(c))
+                for c in df.columns
+            }
+
+            score = 0
+
+            if "numero_produto" in colunas:
+                score += 10
+
+            if "descricao_do_produto/servico" in colunas:
+                score += 15
+
+            if "quantidade" in colunas:
+                score += 12
+
+            if "valor_unitario" in colunas:
+                score += 8
+
+            if "valor_total_item" in colunas:
+                score += 15
+
+            if "codigo_ncm/sh" in colunas:
+                score += 5
+
+            if "cfop" in colunas:
+                score += 5
+
+            if score > melhor_outro_score:
+                melhor_outro_score = score
+                melhor_outro_nome = nome
+
+        if melhor_outro_nome is not None:
+            candidata_itens = melhor_outro_nome
+
+    # =============================================================
+    # Recupera os DataFrames
+    # =============================================================
+
+    df_notas = (
+        tabelas.get(candidata_notas)
+        if candidata_notas
+        else None
+    )
+
+    df_itens = (
+        tabelas.get(candidata_itens)
+        if candidata_itens
+        else None
+    )
+
+    return (
+        candidata_notas,
+        df_notas,
+        candidata_itens,
+        df_itens,
+    )
 
 def formatar_moeda(valor):
     if valor is None or pd.isna(valor):
@@ -138,22 +306,56 @@ def calcular_kpis(tabelas: dict) -> dict:
     total_notas = None
     valor_total = None
     total_itens = None
+    quantidade_comercializada = None
     ticket_medio = None
 
     if df_notas is not None:
-        col_numero = achar_coluna(df_notas, ["numero", "nota"], ["numero"])
-        total_notas = df_notas[col_numero].nunique() if col_numero else len(df_notas)
 
-        col_valor_nota = achar_coluna(df_notas, ["valor", "nota"], ["valor", "total"])
-        if col_valor_nota and pd.api.types.is_numeric_dtype(df_notas[col_valor_nota]):
+        col_chave = achar_coluna(df_notas,["chave_de_acesso"],exata=True)
+        col_numero = achar_coluna(df_notas,["numero"],exata=True)
+
+        if col_chave:
+            total_notas = df_notas[col_chave].nunique()
+
+        elif col_numero:
+            total_notas = df_notas[col_numero].nunique()
+
+        else:
+            total_notas = len(df_notas)
+
+        # --------------------------------------------------------
+        # Valor total das notas
+        # --------------------------------------------------------
+
+        col_valor_nota = achar_coluna(df_notas,["valor_nota_fiscal"],exata=True)
+
+        # fallback para outros formatos de tabela
+        if col_valor_nota is None:
+            col_valor_nota = achar_coluna(
+                df_notas,
+                ["valor", "nota"])
+
+        if (
+            col_valor_nota
+            and pd.api.types.is_numeric_dtype(
+                df_notas[col_valor_nota]
+            )
+        ):
             valor_total = df_notas[col_valor_nota].sum()
 
+
     if df_itens is not None:
+
+        #Quantidade de Registros de itens
+        total_itens=len(df_itens)
+
+        #soma da quantidade comercial declarada
         col_quantidade = achar_coluna(df_itens, ["quantidade"])
+
         if col_quantidade and pd.api.types.is_numeric_dtype(df_itens[col_quantidade]):
-            total_itens = df_itens[col_quantidade].sum()
-        else:
-            total_itens = len(df_itens)
+
+            quantidade_comercializada = df_itens[col_quantidade].sum()
+
 
         if valor_total is None:
             col_valor_item = achar_coluna(df_itens, ["valor_total_item"], ["valor", "total"])
@@ -167,6 +369,7 @@ def calcular_kpis(tabelas: dict) -> dict:
         "total_notas": total_notas,
         "valor_total": valor_total,
         "total_itens": total_itens,
+        "quantidade_comercializada": quantidade_comercializada,
         "ticket_medio": ticket_medio,
         "nome_notas": nome_notas,
         "nome_itens": nome_itens,
@@ -175,7 +378,18 @@ def calcular_kpis(tabelas: dict) -> dict:
 
 def grafico_distribuicao_hora(df):
     col_hora = achar_coluna(df, ["hora"])
-    if not col_hora or not pd.api.types.is_numeric_dtype(df[col_hora]):
+
+    col_hora = next(
+        (
+            col for col in df.columns
+            if _normalizar(col) == "hora"
+        ),
+        None
+    )
+
+    if col_hora is None:
+        return None
+    if not pd.api.types.is_numeric_dtype(df[col_hora]):
         return None
 
     contagem = (
@@ -251,9 +465,10 @@ def grafico_top_produtos(df_itens, top_n=10, metrica="valor"):
     metrica: "valor" (padrão) ou "quantidade" — define o critério de
     ranking dos produtos.
     """
-    col_produto = achar_coluna(df_itens, ["descricao", "produto"], ["produto"])
-    col_valor = achar_coluna(df_itens, ["valor_total_item"], ["valor", "total"])
-    col_qtd = achar_coluna(df_itens, ["quantidade"])
+
+    col_produto = achar_coluna(df_itens, ["descricao", "produto"])
+    col_valor = achar_coluna(df_itens, ["valor_total_item"],exata=True)
+    col_qtd = achar_coluna(df_itens, ["quantidade"],exata=True)
 
     col_ranking = col_qtd if metrica == "quantidade" else col_valor
     if not col_produto or not col_ranking:
@@ -288,32 +503,65 @@ def grafico_top_produtos(df_itens, top_n=10, metrica="valor"):
     return fig
 
 
-def grafico_itens_por_dia(df_itens):
-    col_data = achar_coluna(df_itens, ["data", "emissao"], ["data"])
-    col_qtd = achar_coluna(df_itens, ["quantidade"])
 
-    if not col_data or not pd.api.types.is_datetime64_any_dtype(df_itens[col_data]):
+def grafico_itens_por_dia(df_itens):
+
+    # Data de emissão da NF
+    col_data = achar_coluna(df_itens, ["data", "emissao"])
+
+    # Quantidade comercial do item
+    col_qtd = achar_coluna(df_itens,["quantidade"],exata=True)
+
+    if (
+        not col_data
+        or not pd.api.types.is_datetime64_any_dtype(
+            df_itens[col_data]
+        )
+    ):
         return None
 
+
     serie = df_itens.copy()
+
     serie["_dia"] = serie[col_data].dt.date
 
-    if col_qtd and pd.api.types.is_numeric_dtype(serie[col_qtd]):
-        diario = serie.groupby("_dia")[col_qtd].sum()
-        rotulo_y = "Quantidade de itens"
+    if (
+        col_qtd
+        and pd.api.types.is_numeric_dtype(
+            serie[col_qtd]
+        )
+    ):
+        diario = (
+            serie
+            .groupby("_dia")[col_qtd]
+            .sum()
+        )
+
+        rotulo_y = "Quantidade comercializada"
+
     else:
-        diario = serie.groupby("_dia").size()
-        rotulo_y = "Quantidade de linhas"
+        diario = (
+            serie
+            .groupby("_dia")
+            .size()
+        )
+
+        rotulo_y = "Quantidade de registros de itens"
 
     if diario.empty:
         return None
 
-    fig = px.bar(
-        x=diario.index.astype(str),
-        y=diario.values,
-        labels={"x": "Dia", "y": rotulo_y},
-        color=diario.values,
-        color_continuous_scale=ESCALA_AZUL,
+    fig = px.bar(x=diario.index.astype(str),
+                 y=diario.values,
+                 labels={"x": "Data de emissão","y": rotulo_y},
+                 color=diario.values,
+                 color_continuous_scale=ESCALA_AZUL,)
+
+    fig.update_layout(**LAYOUT_PADRAO,
+                      title="Quantidade Comercializada por Dia",
+                      coloraxis_showscale=False
     )
-    fig.update_layout(**LAYOUT_PADRAO, title="Quantidade de Itens por Dia", coloraxis_showscale=False)
+
+
+
     return fig
