@@ -26,55 +26,83 @@ Aplicação Streamlit para processamento, análise e consulta inteligente de Not
 
 ```
 .
-├── app2.py                      # Aplicação principal (Streamlit)
-├── config.toml                  # Tema visual do Streamlit (dark mode customizado)
-├── dataset/                     # Exemplos de dados e dicionário
-│   ├── 202401_NFs.zip
-│   ├── 202505_NFe.zip
-│   ├── dicionario_dados.csv
-│   ├── notas_fiscais.csv
-│   └── produtos.csv
-├── fullcode.txt                 # Código completo consolidado
-└── src/                         # Módulos Python
-    ├── __init__.py
-    ├── agente.py                # Configuração do agente LangChain + Gemini
-    ├── carregador.py            # Leitura de CSV, transformação de tipos e dicionário
-    ├── carregador_original.py   # Versão original do carregador (backup)
-    ├── kpis.py                  # Cálculo de KPIs e geração de gráficos Plotly
-    ├── validador.py             # Extração segura de ZIPs
-    └── xml_carregador.py        # Parser de XMLs de NF-e
+├── app2.py                  # Aplicação Streamlit (ponto de entrada)
+├── .streamlit/
+│   └── config.toml          # Tema visual (cores)
+├── src/
+│   ├── agente.py             # Criação do agente LangChain + execução de perguntas
+│   ├── carregador.py         # Leitura, transformação e deduplicação dos dados
+│   ├── kpis.py                # Cálculo de KPIs e geração dos gráficos Plotly
+│   ├── validador.py           # Extração segura do ZIP enviado
+│   └── xml_carregador.py      # Leitura de arquivos XML de NF-e
+└── requirements.txt
 ```
 
 ---
 
 ## Instalação e Execução
 
-### 1. Pré-requisitos
-### Em contrução...
+### Pré-requisitos
 
+- Python 3.10+
+- Uma chave de API do Google Gemini ([Google AI Studio](https://aistudio.google.com/))
 
-### 3. Configure a API Key
+### 1. Clone o repositório
+
+```bash
+git clone <url-do-repositorio>
+cd <pasta-do-projeto>
+```
+
+### 2. Crie e ative um ambiente virtual
+ 
+Escolha **uma** das opções abaixo.
+ 
+**Opção A — venv (padrão do Python)**
+ 
+```bash
+python -m venv venv
+ 
+# Linux/macOS
+source venv/bin/activate
+ 
+# Windows
+venv\Scripts\activate
+```
+ 
+**Opção B — conda**
+ 
+```bash
+conda create -n notas-fiscais-agent python=3.11 -y
+conda activate notas-fiscais-agent
+```
+ 
+> Nota: os pacotes do ecossistema LangChain não são bem mantidos no
+> `conda-forge`, então mesmo usando conda a instalação das dependências
+> no passo seguinte é feita via `pip` (rodando dentro do ambiente conda
+> já ativado) — não via `conda install`.
+> 
+### 3. Instale as dependências
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Configure as variáveis de ambiente
 
 Crie um arquivo `.env` na raiz do projeto:
 
-```env
+```
 GOOGLE_API_KEY=sua_chave_aqui
 ```
 
-Ou exporte diretamente no terminal:
-
-```bash
-export GOOGLE_API_KEY=sua_chave_aqui  # Linux/Mac
-set GOOGLE_API_KEY=sua_chave_aqui     # Windows
-```
-
-### 4. Execute
+### 5. Execute a aplicação
 
 ```bash
 streamlit run app2.py
 ```
 
-A aplicação abrirá em `http://localhost:8501`.
+Acesse `http://localhost:8501` no navegador, envie um `.zip` com as notas fiscais (CSV e/ou XML) pela barra lateral e clique em **Processar dados**.
 
 ---
 
@@ -154,4 +182,5 @@ Este projeto está licenciado sob a licença MIT. Veja o arquivo LICENSE para de
 ## 🤝 Contribuições
 
 Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou pull requests com melhorias, correções de bugs ou novas funcionalidades.
-```
+
+
