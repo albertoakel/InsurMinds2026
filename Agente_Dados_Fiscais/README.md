@@ -38,6 +38,7 @@ Aplicação Streamlit para processamento, análise e consulta inteligente de Not
 └── requirements.txt
 ```
 
+ [📄 Relatório Técnico Completo ](Relatorio_Tecnico.md)
 ---
 
 ## Instalação e Execução
