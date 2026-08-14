@@ -4,8 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a3e4521f-c062-4b41-98d9-b36721ac81d0" name="Changes" comment="up">
+    <list default="true" id="a3e4521f-c062-4b41-98d9-b36721ac81d0" name="Changes" comment="update&#10;add memory in agnt&#10;add process in dataset&#10;add newlayout (kpi e plots)">
+      <change afterPath="$PROJECT_DIR$/agente_dados_projeto/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/agente_dados_projeto/src/agente.bkp.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agente_dados_projeto/app2.py" beforeDir="false" afterPath="$PROJECT_DIR$/agente_dados_projeto/app2.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agente_dados_projeto/src/agente.py" beforeDir="false" afterPath="$PROJECT_DIR$/agente_dados_projeto/src/agente.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agente_dados_projeto/src/carregador.py" beforeDir="false" afterPath="$PROJECT_DIR$/agente_dados_projeto/src/carregador.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/agente_dados_projeto/src/kpis.py" beforeDir="false" afterPath="$PROJECT_DIR$/agente_dados_projeto/src/kpis.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,61 +47,61 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0000000000000002" />
-      <entry key="MS500" value="1.0010126134547817" />
-      <entry key="S2" value="1.4289431876238234" />
-      <entry key="S5" value="2.8603509985900093" />
-      <entry key="S10" value="4.412776641321699" />
-      <entry key="S30" value="6.431075017789323" />
-      <entry key="S60" value="7.154300437218807" />
-      <entry key="M2" value="7.581279519481578" />
-      <entry key="M5" value="9.277055564831546" />
-      <entry key="M10" value="14.102630473412033" />
-      <entry key="M15" value="18.282551921394795" />
-      <entry key="M30" value="26.216594704473735" />
-      <entry key="H1" value="34.53301354739896" />
-      <entry key="H2" value="47.47929615042025" />
-      <entry key="H4" value="76.01104844790774" />
-      <entry key="D1" value="182.50567125944016" />
-      <entry key="W1" value="230.78244260442594" />
+      <entry key="MS100" value="1.0000018828212456" />
+      <entry key="MS500" value="1.1230217164707472" />
+      <entry key="S2" value="1.9963177867588802" />
+      <entry key="S5" value="2.6062401539876303" />
+      <entry key="S10" value="3.1716528877393264" />
+      <entry key="S30" value="4.1530883468542585" />
+      <entry key="S60" value="6.051016030995472" />
+      <entry key="M2" value="15.212478036682452" />
+      <entry key="M5" value="40.17355959464687" />
+      <entry key="M10" value="60.66424899254232" />
+      <entry key="M15" value="72.07717610950844" />
+      <entry key="M30" value="90.19755299147535" />
+      <entry key="H1" value="106.03669857424394" />
+      <entry key="H2" value="123.54417181136172" />
+      <entry key="H4" value="154.3335582184427" />
+      <entry key="D1" value="264.506735206767" />
+      <entry key="W1" value="314.4285800275308" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
-      <entry key="MS500" value="0.0" />
-      <entry key="S2" value="8.167944732469728E-178" />
-      <entry key="S5" value="1.867636067822799E-71" />
-      <entry key="S10" value="5.870231287958281E-36" />
-      <entry key="S30" value="2.8359665354684708E-12" />
-      <entry key="S60" value="2.3786490692056185E-6" />
-      <entry key="M2" value="0.002180451484383446" />
-      <entry key="M5" value="0.13092433384096083" />
-      <entry key="M10" value="0.5285988992430986" />
-      <entry key="M15" value="0.872793720204179" />
-      <entry key="M30" value="1.5287644447982034" />
-      <entry key="H1" value="2.104273480464832" />
-      <entry key="H2" value="2.567210421959405" />
-      <entry key="H4" value="3.193269203075388" />
-      <entry key="D1" value="5.904847982177032" />
-      <entry key="W1" value="7.603801207785842" />
+      <entry key="MS500" value="1.2120493835420696E-258" />
+      <entry key="S2" value="3.318028245614585E-65" />
+      <entry key="S5" value="1.6156676580966936E-26" />
+      <entry key="S10" value="1.2710891621348587E-13" />
+      <entry key="S30" value="5.02796221425134E-5" />
+      <entry key="S60" value="0.007090812518282859" />
+      <entry key="M2" value="0.08420891037712963" />
+      <entry key="M5" value="0.3795508482503917" />
+      <entry key="M10" value="0.7394522585460739" />
+      <entry key="M15" value="1.0612552148350085" />
+      <entry key="M30" value="1.8052857561953712" />
+      <entry key="H1" value="2.5860416760819427" />
+      <entry key="H2" value="3.2433310942676625" />
+      <entry key="H4" value="3.991400108551134" />
+      <entry key="D1" value="6.844120573357964" />
+      <entry key="W1" value="8.59272597835618" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.9726549474122858" />
-      <entry key="MS500" value="0.9954785031563822" />
-      <entry key="S2" value="1.427064978346023" />
-      <entry key="S5" value="2.858880680061987" />
-      <entry key="S10" value="4.411616357360391" />
-      <entry key="S30" value="6.430493006787679" />
-      <entry key="S60" value="7.153975714660371" />
-      <entry key="M2" value="7.583250469394861" />
-      <entry key="M5" value="9.407040745334212" />
-      <entry key="M10" value="14.629387276711405" />
-      <entry key="M15" value="19.15325138181128" />
-      <entry key="M30" value="27.74336851139447" />
-      <entry key="H1" value="36.63572665908259" />
-      <entry key="H2" value="50.045314133149894" />
-      <entry key="H4" value="79.20336463232434" />
-      <entry key="D1" value="188.41013740997224" />
-      <entry key="W1" value="238.38617080170008" />
+      <entry key="MS100" value="6.199021117886982E-4" />
+      <entry key="MS500" value="0.35082247239546555" />
+      <entry key="S2" value="1.6867432079438274" />
+      <entry key="S5" value="2.4684036779666907" />
+      <entry key="S10" value="3.1000962262923455" />
+      <entry key="S30" value="4.128540325969294" />
+      <entry key="S60" value="6.043164713001073" />
+      <entry key="M2" value="15.279800360497413" />
+      <entry key="M5" value="40.53498511498592" />
+      <entry key="M10" value="61.38996458627257" />
+      <entry key="M15" value="73.127496434871" />
+      <entry key="M30" value="91.99580708747075" />
+      <entry key="H1" value="108.61840975334009" />
+      <entry key="H2" value="126.78484061981607" />
+      <entry key="H4" value="158.3232449130054" />
+      <entry key="D1" value="271.3503399467956" />
+      <entry key="W1" value="323.0212133764765" />
     </decayedShown>
   </component>
   <component name="ProblemsViewState">
@@ -254,7 +260,15 @@
       <option name="project" value="LOCAL" />
       <updated>1786664330421</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="update&#10;add memory in agnt&#10;add process in dataset&#10;add newlayout (kpi e plots)">
+      <option name="closed" value="true" />
+      <created>1786665173866</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1786665173866</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -274,7 +288,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="upnew" />
     <MESSAGE value="up" />
-    <option name="LAST_COMMIT_MESSAGE" value="up" />
+    <MESSAGE value="update&#10;add memory in agnt&#10;add process in dataset&#10;add newlayout (kpi e plots)" />
+    <option name="LAST_COMMIT_MESSAGE" value="update&#10;add memory in agnt&#10;add process in dataset&#10;add newlayout (kpi e plots)" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
