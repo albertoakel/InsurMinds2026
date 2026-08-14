@@ -4,14 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a3e4521f-c062-4b41-98d9-b36721ac81d0" name="Changes" comment="update&#10;add ReadME e config.toml">
-      <change beforePath="$PROJECT_DIR$/agente_dados_projeto/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/agente_dados_projeto/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/agente_dados_projeto/app2.py" beforeDir="false" afterPath="$PROJECT_DIR$/agente_dados_projeto/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/agente_dados_projeto/src/agente.bkp.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/agente_dados_projeto/src/agente.py" beforeDir="false" afterPath="$PROJECT_DIR$/agente_dados_projeto/src/agente.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/agente_dados_projeto/src/carregador_original.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/agente_dados_projeto/src/kpis.py" beforeDir="false" afterPath="$PROJECT_DIR$/agente_dados_projeto/src/kpis.py" afterDir="false" />
-    </list>
+    <list default="true" id="a3e4521f-c062-4b41-98d9-b36721ac81d0" name="Changes" comment="updates" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -46,61 +39,61 @@
   </component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0000023645663532" />
-      <entry key="MS500" value="1.085790804828784" />
-      <entry key="S2" value="2.17876385371307" />
-      <entry key="S5" value="3.766763137849313" />
-      <entry key="S10" value="4.975958351670716" />
-      <entry key="S30" value="6.201787843809805" />
-      <entry key="S60" value="6.582739699575181" />
-      <entry key="M2" value="6.787815130748411" />
-      <entry key="M5" value="7.0454752366708595" />
-      <entry key="M10" value="7.5860556123143565" />
-      <entry key="M15" value="8.034615481626252" />
-      <entry key="M30" value="8.91461262520125" />
-      <entry key="H1" value="11.113752371904123" />
-      <entry key="H2" value="18.482306448540555" />
-      <entry key="H4" value="35.68115095697051" />
-      <entry key="D1" value="204.3709701063974" />
-      <entry key="W1" value="350.02537087887123" />
+      <entry key="MS100" value="2.385789868980743E-7" />
+      <entry key="MS500" value="0.08693474283633992" />
+      <entry key="S2" value="1.3414485350514675" />
+      <entry key="S5" value="2.545871287592197" />
+      <entry key="S10" value="3.18308180750354" />
+      <entry key="S30" value="3.7046191319947597" />
+      <entry key="S60" value="3.84920492902264" />
+      <entry key="M2" value="3.9238086932791103" />
+      <entry key="M5" value="3.969330785982156" />
+      <entry key="M10" value="3.9856080592512724" />
+      <entry key="M15" value="4.010211324147404" />
+      <entry key="M30" value="4.444760679112413" />
+      <entry key="H1" value="6.494113573759271" />
+      <entry key="H2" value="12.758779024478331" />
+      <entry key="H4" value="28.564222380103764" />
+      <entry key="D1" value="196.0428825361182" />
+      <entry key="W1" value="350.9280366815417" />
     </decayedCancelled>
     <decayedSelected>
-      <entry key="MS100" value="0.0" />
-      <entry key="MS500" value="0.0" />
-      <entry key="S2" value="0.0" />
-      <entry key="S5" value="0.0" />
-      <entry key="S10" value="6.575692214281256E-240" />
-      <entry key="S30" value="1.8734717943614036E-80" />
-      <entry key="S60" value="1.3687482582131036E-40" />
-      <entry key="M2" value="1.169935151285362E-20" />
-      <entry key="M5" value="1.0647918439932502E-8" />
-      <entry key="M10" value="1.0318875151843102E-4" />
-      <entry key="M15" value="0.002199994382901121" />
-      <entry key="M30" value="0.04690409772309032" />
-      <entry key="H1" value="0.21657707183116764" />
-      <entry key="H2" value="0.46916555099925283" />
-      <entry key="H4" value="0.8186427978596622" />
-      <entry key="D1" value="4.837341654214702" />
-      <entry key="W1" value="8.920023933649112" />
+      <entry key="MS100" value="1.0" />
+      <entry key="MS500" value="1.0" />
+      <entry key="S2" value="1.0" />
+      <entry key="S5" value="1.0" />
+      <entry key="S10" value="1.0" />
+      <entry key="S30" value="1.0" />
+      <entry key="S60" value="1.0" />
+      <entry key="M2" value="1.0" />
+      <entry key="M5" value="1.0000000000000002" />
+      <entry key="M10" value="1.0000000132630853" />
+      <entry key="M15" value="1.000005603117242" />
+      <entry key="M30" value="1.0023670904593533" />
+      <entry key="H1" value="1.0486535475520355" />
+      <entry key="H2" value="1.2223704798888906" />
+      <entry key="H4" value="1.5635986627954017" />
+      <entry key="D1" value="5.545545543496433" />
+      <entry key="W1" value="9.841092058429343" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.003064792627978265" />
-      <entry key="MS500" value="0.3506627731786782" />
-      <entry key="S2" value="1.8037754642609585" />
-      <entry key="S5" value="3.57825157816348" />
-      <entry key="S10" value="4.87331280334977" />
-      <entry key="S30" value="6.165468765201031" />
-      <entry key="S60" value="6.564300286807667" />
-      <entry key="M2" value="6.778522611907019" />
-      <entry key="M5" value="7.041676951729713" />
-      <entry key="M10" value="7.584135119143577" />
-      <entry key="M15" value="8.035393927341055" />
-      <entry key="M30" value="8.96072397270883" />
-      <entry key="H1" value="11.32983964226325" />
-      <entry key="H2" value="18.951122521398883" />
-      <entry key="H4" value="36.49949651607728" />
-      <entry key="D1" value="209.2079603830511" />
-      <entry key="W1" value="358.9453005002234" />
+      <entry key="MS100" value="5.336948404904079E-5" />
+      <entry key="MS500" value="0.2263176740250291" />
+      <entry key="S2" value="1.9509345125260826" />
+      <entry key="S5" value="3.365572493860739" />
+      <entry key="S10" value="4.088289442685555" />
+      <entry key="S30" value="4.6719209071008585" />
+      <entry key="S60" value="4.83271357555803" />
+      <entry key="M2" value="4.915527094253143" />
+      <entry key="M5" value="4.966009478015896" />
+      <entry key="M10" value="4.98394570980127" />
+      <entry key="M15" value="5.009104916135123" />
+      <entry key="M30" value="5.446533405671479" />
+      <entry key="H1" value="7.54237986996839" />
+      <entry key="H2" value="13.980845242794427" />
+      <entry key="H4" value="30.127547095219043" />
+      <entry key="D1" value="201.58808634532167" />
+      <entry key="W1" value="360.7690336118797" />
     </decayedShown>
   </component>
   <component name="ProblemsViewState">
@@ -291,7 +284,23 @@
       <option name="project" value="LOCAL" />
       <updated>1786722084682</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="updates">
+      <option name="closed" value="true" />
+      <created>1786743380243</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1786743380243</updated>
+    </task>
+    <task id="LOCAL-00018" summary="updates">
+      <option name="closed" value="true" />
+      <created>1786743645094</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1786743645094</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -314,7 +323,8 @@
     <MESSAGE value="update&#10;add memory in agnt&#10;add process in dataset&#10;add newlayout (kpi e plots)" />
     <MESSAGE value="update&#10;add memory in agnt&#10;add process in dataset&#10;add newlayout (kpi e plots)&#10;add ReadME" />
     <MESSAGE value="update&#10;add ReadME e config.toml" />
-    <option name="LAST_COMMIT_MESSAGE" value="update&#10;add ReadME e config.toml" />
+    <MESSAGE value="updates" />
+    <option name="LAST_COMMIT_MESSAGE" value="updates" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
