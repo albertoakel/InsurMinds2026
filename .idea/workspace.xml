@@ -5,9 +5,25 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a3e4521f-c062-4b41-98d9-b36721ac81d0" name="Changes" comment="updates">
+      <change afterPath="$PROJECT_DIR$/Agente_climatico/.streamlit/config.toml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Agente_climatico/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Agente_climatico/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Agente_climatico/sandbox/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Agente_climatico/sandbox/ai.agent.old.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Agente_climatico/sandbox/tester.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Agente_climatico/src/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Agente_climatico/src/air_quality_service.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Agente_climatico/src/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/InsurMinds2026.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/InsurMinds2026.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Agente_Dados_Fiscais/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/Agente_Dados_Fiscais/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Agente_Dados_Fiscais/Relatório Técnico.md" beforeDir="false" afterPath="$PROJECT_DIR$/Agente_Dados_Fiscais/Relatorio_Tecnico.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Agente_Dados_Fiscais/Relatorio_Tecnico.md" beforeDir="false" afterPath="$PROJECT_DIR$/Agente_Dados_Fiscais/Relatorio_Tecnico.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Agente_Dados_Fiscais/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/Agente_Dados_Fiscais/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Agente_Dados_Fiscais/src/agente.py" beforeDir="false" afterPath="$PROJECT_DIR$/Agente_Dados_Fiscais/src/agente.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RAG_SegurancaPublica/app/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/RAG_SegurancaPublica/app/app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/Agentes_I2A2.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/Agentes_I2A2.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/notebooks/agente_dataframes_Benkmnark.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/agente_dataframes_Benkmnark.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -112,43 +128,53 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python.main.executor&quot;: &quot;Run&quot;,
-    &quot;Python.make_vector_store.executor&quot;: &quot;Run&quot;,
-    &quot;Python.mcp_client.executor&quot;: &quot;Run&quot;,
-    &quot;Python.mcp_helpers.executor&quot;: &quot;Run&quot;,
-    &quot;Python.mcp_server.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/akel/PycharmProjects/InsurMinds2026/MCP&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.jshint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.jshint&quot;: &quot;&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.app.executor": "Run",
+    "Python.config.executor": "Run",
+    "Python.main.executor": "Run",
+    "Python.make_vector_store.executor": "Run",
+    "Python.mcp_client.executor": "Run",
+    "Python.mcp_helpers.executor": "Run",
+    "Python.mcp_server.executor": "Run",
+    "Python.mock_db.executor": "Run",
+    "Python.tester.executor": "Run",
+    "Python.tester_qualidade_ar.executor": "Run",
+    "RunOnceActivity.MCP Project settings loaded": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "master",
+    "last_opened_file_path": "/home/akel/PycharmProjects/InsurMinds2026/Agente_climatico",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.jshint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.jshint": "",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "python.packages.toolwindow.project.migrated.to.right.top.v2": "true",
+    "run.code.analysis.last.selected.profile": "pProject Default"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/Agente_climatico" />
       <recent name="$PROJECT_DIR$/MCP" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/Agente_climatico/sandbox" />
+      <recent name="$PROJECT_DIR$/Agente_climatico/dataset" />
+      <recent name="$PROJECT_DIR$/Agente_climatico/src" />
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-python-sdk-6fa658e1df1a-5bd6d13a2a75-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-262.8665.369" />
+        <option value="bundled-python-sdk-eff1e8def5f5-5bd6d13a2a75-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-262.10315.174" />
       </set>
     </attachedChunks>
   </component>
@@ -312,7 +338,23 @@
       <option name="project" value="LOCAL" />
       <updated>1786743943808</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="updates">
+      <option name="closed" value="true" />
+      <created>1787343850100</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1787343850100</updated>
+    </task>
+    <task id="LOCAL-00021" summary="updates">
+      <option name="closed" value="true" />
+      <created>1787344781940</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1787344781940</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

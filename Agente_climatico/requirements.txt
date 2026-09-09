@@ -1,0 +1,10 @@
+# Interface web
+streamlit
+
+# Integração HTTP e variáveis de ambiente
+requests
+python-dotenv
+
+# Geração de mensagens com Groq
+langchain-core
+langchain-groq

@@ -1,0 +1,1947 @@
+#app2.py
+import os
+import tempfile
+import warnings
+import zipfile
+
+import streamlit as st
+from dotenv import load_dotenv
+
+from src.agente import criar_agente, executar_pergunta
+from src.carregador import carregar_dados, carregar_dicionario, dicionario_em_texto
+from src.validador import extrair_zip_seguro
+from src.kpis import (
+    achar_coluna,
+    calcular_kpis,
+    formatar_moeda,
+    formatar_numero,
+    grafico_distribuicao_hora,
+    grafico_itens_por_dia,
+    grafico_top_categorias,
+    grafico_top_produtos,
+    grafico_valor_por_categoria,
+    identificar_tabelas,_normalizar
+)
+
+load_dotenv()
+
+st.set_page_config(
+    page_title="Agente de Dados Fiscais",
+    page_icon="📊",
+    layout="wide"
+)
+
+# ----------------------------------------------------------------------
+# Identidade visual — tons frios de azul/ciano. O tema base (cores de
+# fundo, texto e cor primária) vem de .streamlit/config.toml; aqui só
+# entram os ajustes finos que o config.toml não cobre (fontes, gradiente
+# do título, cartões de KPI, destaque do chat).
+# ----------------------------------------------------------------------
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap');
+
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif;
+}
+
+.app-header {
+    padding: 1.4rem 1.8rem;
+    border-radius: 14px;
+    margin-bottom: 1.2rem;
+    background: linear-gradient(135deg, #0B1F3A 0%, #12314F 55%, #0E4A5C 100%);
+    border: 1px solid #1E3A5F;
+}
+
+.app-header h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    background: linear-gradient(90deg, #E8F1F8 0%, #4CC9F0 60%, #2EC4B6 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.app-header p {
+    color: #8FB4D9;
+    margin: 0.3rem 0 0 0;
+    font-size: 0.95rem;
+}
+
+/* Cartões (containers com borda) usados nos KPIs e nos painéis */
+[data-testid="stVerticalBlockBorderWrapper"] {
+    border-color: #1E3A5F !important;
+    background-color: #0F2743;
+    border-radius: 12px !important;
+}
+
+[data-testid="stMetricValue"] {
+    color: #4CC9F0;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+}
+
+[data-testid="stMetricLabel"] {
+    color: #8FB4D9;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.78rem;
+}
+
+/* Destaque do painel de chat */
+.st-key-chat_container {
+    border: 1px solid #2EC4B6 !important;
+    box-shadow: 0 0 24px rgba(46, 196, 182, 0.15);
+}
+
+.secao-titulo {
+    font-family: 'Space Grotesk', sans-serif;
+    color: #E8F1F8;
+    font-weight: 600;
+    margin: 0.4rem 0 0.6rem 0;
+}
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<div class="app-header">
+    <h1> Agente Inteligente para Dados Fiscais</h1>
+    <p>Envie notas fiscais (CSV ou XML), acompanhe os indicadores e converse com o assistente para explorar os dados.</p>
+</div>
+""", unsafe_allow_html=True)
+
+
+if not os.getenv("GOOGLE_API_KEY"):
+    st.warning(
+        "A variável GOOGLE_API_KEY não foi encontrada "
+        "no arquivo .env."
+    )
+
+
+if "tabelas" not in st.session_state:
+    st.session_state.tabelas = None
+
+if "dicionario" not in st.session_state:
+    st.session_state.dicionario = None
+
+if "agente" not in st.session_state:
+    st.session_state.agente = None
+
+if "mensagens" not in st.session_state:
+    st.session_state.mensagens = []
+
+
+# ========================================================================
+# Interface A — Carga dos dados (mantida como estava)
+# ========================================================================
+st.sidebar.header("Upload")
+
+arquivo_zip = st.sidebar.file_uploader(
+    "Envie um arquivo ZIP",
+    type=["zip"]
+)
+
+
+if arquivo_zip is not None:
+    try:
+        with zipfile.ZipFile(arquivo_zip, "r") as zip_ref:
+            st.sidebar.write("Arquivos encontrados no ZIP:")
+
+            for nome in zip_ref.namelist():
+                st.sidebar.write(nome)
+
+    except zipfile.BadZipFile:
+        st.sidebar.error(
+            "O arquivo enviado não é um ZIP válido."
+        )
+
+
+if arquivo_zip is not None:
+    tamanho_maximo = 100 * 1024 * 1024
+
+    if arquivo_zip.size > tamanho_maximo:
+        st.sidebar.error(
+            "O arquivo é muito grande. O limite é de 100 MB."
+        )
+
+    elif st.sidebar.button("Processar dados"):
+        try:
+            arquivo_zip.seek(0)
+
+            pasta_temporaria = tempfile.mkdtemp(
+                prefix="dataset_"
+            )
+
+            extrair_zip_seguro(
+                arquivo_zip,
+                pasta_temporaria
+            )
+
+            tabelas, erros_xml = carregar_dados(
+                pasta_temporaria
+            )
+
+            if erros_xml:
+                st.sidebar.warning(
+                    f"{len(erros_xml)} arquivo(s) XML "
+                    "não puderam ser lidos."
+                )
+
+            caminho_dicionario = os.path.join(
+                pasta_temporaria,
+                "dicionario_dados.csv"
+            )
+
+            dicionario = carregar_dicionario(
+                pasta_temporaria,
+                tabelas
+            )
+
+            if os.path.exists(caminho_dicionario):
+                st.sidebar.success(
+                    "Dicionário de dados encontrado."
+                )
+            else:
+                st.sidebar.warning(
+                    "O ZIP não possui dicionário. "
+                    "Um dicionário automático foi criado."
+                )
+
+            texto_dicionario = dicionario_em_texto(
+                dicionario
+            )
+
+            agente = criar_agente(
+                tabelas,
+                texto_dicionario
+            )
+
+            st.session_state.tabelas = tabelas
+            st.session_state.dicionario = dicionario
+            st.session_state.agente = agente
+            st.session_state.mensagens = []
+
+            st.sidebar.success(
+                "Dados carregados com sucesso!"
+            )
+
+        except Exception as erro:
+            st.sidebar.error(
+                f"Não foi possível processar o ZIP: {erro}"
+            )
+
+
+# ========================================================================
+# Interface B — Painel + Chat
+# ========================================================================
+if st.session_state.tabelas is None:
+    st.info(
+        "Primeiro envie um ZIP e clique em "
+        "'Processar dados' na barra lateral."
+    )
+
+else:
+    tabelas = st.session_state.tabelas
+    kpis_dados = calcular_kpis(tabelas)
+    nome_notas, df_notas, nome_itens, df_itens = identificar_tabelas(tabelas)
+    # ---------------------------- KPIs ---------------------------------
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        with st.container(border=True):
+            st.metric("Notas Fiscais", formatar_numero(kpis_dados["total_notas"]))
+
+    with col2:
+        with st.container(border=True):
+            st.metric("Valor Total", formatar_moeda(kpis_dados["valor_total"]))
+
+    with col3:
+        with st.container(border=True):
+            st.metric("Itens Processados", formatar_numero(kpis_dados["total_itens"]))
+
+    with col4:
+        with st.container(border=True):
+            st.metric("Ticket Médio", formatar_moeda(kpis_dados["ticket_medio"]))
+
+    st.write("")
+
+    # ------------------- Chat destacado + gráfico em foco ---------------
+    col_chat, col_grafico = st.columns([3, 2])
+
+    with col_chat:
+        st.markdown('<p class="secao-titulo">🤖 Assistente de Notas Fiscais</p>', unsafe_allow_html=True)
+
+        with st.container(height=520, border=True, key="chat_container"):
+            for mensagem in st.session_state.mensagens:
+                with st.chat_message(mensagem["role"]):
+                    st.markdown(mensagem["content"])
+
+            pergunta = st.chat_input(
+                "Exemplo: Qual fornecedor recebeu o maior valor?"
+            )
+
+            if pergunta:
+                st.session_state.mensagens.append({
+                    "role": "user",
+                    "content": pergunta
+                })
+
+                with st.chat_message("user"):
+                    st.markdown(pergunta)
+
+                with st.chat_message("assistant"):
+                    with st.spinner("Analisando os dados..."):
+                        try:
+                            resposta = executar_pergunta(
+                                st.session_state.agente,
+                                pergunta,
+                                historico_mensagens=st.session_state.mensagens[:-1]
+                            )
+
+                            st.markdown(resposta)
+
+                            st.session_state.mensagens.append({
+                                "role": "assistant",
+                                "content": resposta
+                            })
+
+                        except Exception as erro:
+                            st.error(
+                                "Não consegui responder. "
+                                "Verifique se a pergunta está relacionada "
+                                "às colunas disponíveis."
+                            )
+
+                            st.caption(
+                                f"Detalhe técnico: {erro}"
+                            )
+
+    with col_grafico:
+        st.markdown('<p class="secao-titulo">🕒 Distribuição por Hora</p>', unsafe_allow_html=True)
+
+        with st.container(height=520, border=True):
+            fig_hora = grafico_distribuicao_hora(df_notas) if df_notas is not None else None
+
+            if fig_hora is not None:
+                st.plotly_chart(fig_hora, width="stretch")
+            else:
+                st.info("Coluna de hora não encontrada nos dados carregados.")
+
+    st.write("")
+
+    # --------------------------- Análises -------------------------------
+    st.markdown('<p class="secao-titulo">🔎 Análises</p>', unsafe_allow_html=True)
+
+    aba_geo, aba_produtos, aba_temporal = st.tabs(
+        ["📍 Geográfico", "🏷️ Produtos", "📅 Temporal"]
+    )
+
+    with aba_geo:
+        if df_notas is None:
+            st.info("Nenhuma tabela com dados de UF foi identificada.")
+        else:
+            col_uf_emit = achar_coluna(df_notas,["uf", "emit"])
+            col_uf_dest = achar_coluna(df_notas,["uf", "dest"])
+            col_valor_nota = achar_coluna(df_notas,["valor", "nota", "fiscal"])
+
+
+            col_a, col_b = st.columns(2)
+
+            with col_a:
+                fig = grafico_top_categorias(df_notas, col_uf_emit, "Top 10 UF — Emitente")
+                if fig is not None:
+                    st.plotly_chart(fig, width="stretch")
+                else:
+                    st.info("Coluna de UF do emitente não encontrada.")
+
+            with col_b:
+                fig = grafico_top_categorias(df_notas, col_uf_dest, "Top 10 UF — Destinatário")
+                if fig is not None:
+                    st.plotly_chart(fig, width="stretch")
+                else:
+                    st.info("Coluna de UF do destinatário não encontrada.")
+
+            fig = grafico_valor_por_categoria(
+                df_notas, col_uf_emit, col_valor_nota, "Valor Total por UF — Emitente"
+            )
+            if fig is not None:
+                st.plotly_chart(fig, width="stretch")
+            else:
+                st.info("Não foi possível calcular valor por UF com as colunas disponíveis.")
+
+    with aba_produtos:
+        if df_itens is None:
+            st.info("Nenhuma tabela de itens/produtos foi identificada.")
+        else:
+            col_a, col_b = st.columns(2)
+
+            with col_a:
+                fig = grafico_top_produtos(df_itens, metrica="valor")
+                if fig is not None:
+                    st.plotly_chart(fig, width="stretch")
+                else:
+                    st.info("Não foi possível montar o ranking de produtos por valor.")
+
+            with col_b:
+                fig = grafico_top_produtos(df_itens, metrica="quantidade")
+                if fig is not None:
+                    st.plotly_chart(fig, width="stretch")
+                else:
+                    st.info("Não foi possível montar o ranking de produtos por quantidade.")
+
+    with aba_temporal:
+        if df_itens is None:
+            st.info("Nenhuma tabela com datas foi identificada.")
+        else:
+            fig = grafico_itens_por_dia(df_itens)
+            if fig is not None:
+                st.plotly_chart(fig, width="stretch")
+            else:
+                st.info("Coluna de data de emissão não encontrada ou não convertida para data.")
+
+    # ------------------------ Detalhes técnicos --------------------------
+    st.markdown("---")
+
+    with st.expander("Clique para ver os Detalhes Técnicos do Código"):
+        st.markdown("""
+**Este aplicativo Streamlit foi desenvolvido para o processamento de notas
+fiscais e consulta via chatbot em linguagem natural.**
+
+- Os arquivos CSV/XML enviados no ZIP são lidos, convertidos para os
+  tipos apropriados (datas, valores monetários, quantidades) e têm
+  registros duplicados removidos automaticamente antes de qualquer análise.
+- O assistente (aba de chat) usa um agente LangChain sobre os DataFrames
+  carregados para responder perguntas em português, sempre restrito aos
+  dados efetivamente presentes nas tabelas.
+- Os KPIs e gráficos acima são recalculados a partir das mesmas tabelas
+  usadas pelo chat — não há transformação adicional só para o painel.
+""")
+
+        st.markdown("**Variáveis dos dados carregados**")
+
+        for nome, tabela in tabelas.items():
+            st.caption(f"`{nome}` — {len(tabela)} linhas, {len(tabela.columns)} colunas")
+
+        st.dataframe(
+            st.session_state.dicionario.astype(str),
+            hide_index=True
+        )
+
+#src/agente.py
+import pandas as pd
+
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_experimental.agents import create_pandas_dataframe_agent
+
+
+# Limita o tamanho do que o pandas imprime dentro do REPL do agente.
+# Sem isso, um "print(df)" de uma tabela grande vira uma observação enorme
+# que é reenviada por inteiro em TODAS as iterações seguintes do loop,
+# inflando tokens e tempo de resposta a cada passo.
+pd.set_option("display.max_rows", 30)
+pd.set_option("display.max_columns", 20)
+pd.set_option("display.width", 120)
+
+
+def criar_agente(tabelas, dicionario_texto):
+    # Obs: Se um modelo der erro de quota/disponibilidade,
+    # você pode alternar o índice do LLM_MODELS.
+    LLM_MODELS = [
+        'gemini-2.0-flash',
+        'gemini-2.5-flash-lite',
+        'gemini-3.1-flash-lite'
+    ]
+
+    modelo = ChatGoogleGenerativeAI(
+        model=LLM_MODELS[2],
+        temperature=0,
+        # Gemini 3.x usa "thinking_level" para controlar o quanto o modelo
+        # "pensa" antes de responder. Sem isso, o padrão é "high", que é
+        # caro em latência para uma tarefa de decidir chamadas de pandas.
+        # "low" é o nível recomendado pelo próprio LangChain para
+        # respostas mais rápidas; teste também "minimal" se o seu modelo
+        # suportar (verifique com modelo.profile["reasoning_effort_levels"]).
+        thinking_level="low",
+    )
+
+    # CORREÇÃO AQUI: Garante que o parâmetro seja uma lista de DataFrames
+    if isinstance(tabelas, dict):
+        lista_dataframes = list(tabelas.values())
+    else:
+        lista_dataframes = tabelas
+
+    nomes_tabelas = list(tabelas.keys()) if isinstance(tabelas, dict) else []
+
+    contexto_tabelas = ""
+
+    if isinstance(tabelas, dict):
+
+        for i, nome in enumerate(nomes_tabelas):
+            contexto_tabelas += (
+                f"\n- df{i + 1}: tabela '{nome}', "
+                f"{len(tabelas[nome])} linhas, "
+                f"colunas: {list(tabelas[nome].columns)}"
+            )
+
+    instrucoes = f"""
+    Você é um analista de dados especialista em Notas Fiscais.
+
+    Mapeamento dos DataFrames disponíveis:
+    {contexto_tabelas}
+
+    Regras obrigatórias:
+
+    1. Responda sempre em português e use somente os dados disponíveis.
+    2. Nunca invente valores, colunas ou informações.
+
+    3. Para perguntas quantitativas, siga este fluxo:
+       - identifique a entidade e a métrica solicitada;
+       - escolha o DataFrame correto;
+       - verifique o que cada linha representa;
+       - identifique as colunas semanticamente adequadas;
+       - determine a operação matemática necessária;
+       - execute o cálculo usando pandas;
+       - valide se o resultado responde exatamente à pergunta.
+
+    4. Respeite a granularidade:
+       - tabela de notas: documentos fiscais;
+       - tabela de itens: produtos ou serviços das notas;
+       - não misture granularidades sem necessidade.
+
+    5. Para contar entidades distintas, prefira identificadores únicos
+       e use nunique() quando apropriado.
+
+    6. Quando houver colunas com nomes semelhantes, use o significado
+       indicado no dicionário e não apenas correspondência parcial do nome.
+
+    7. Não deduza resultados a partir de .head(), amostras, previews,
+       quantidade de DataFrames, colunas ou linhas exibidas.
+
+    8. Semântica importante:
+       - chave_de_acesso: identificador único da nota fiscal;
+       - valor_nota_fiscal: valor total da nota;
+       - quantidade: quantidade comercializada do item;
+       - valor_total_item: valor total do item.
+
+    9. Para produtos e serviços, utilize a tabela de itens.
+       Para documentos fiscais, valores das notas, datas, emitentes
+       e destinatários, utilize preferencialmente a tabela de notas.
+
+    10. Faça cálculos com os valores numéricos completos e arredonde
+        somente na apresentação final.
+
+    11. Se houver mais de uma interpretação razoável, use a mais compatível
+        com a semântica dos dados. Se isso puder alterar substancialmente
+        o resultado, informe brevemente a interpretação adotada.
+
+    12. A resposta final deve ser direta, em linguagem natural,
+        sem JSON, dicionários ou código, salvo quando solicitado.
+
+    Dicionário de dados:
+    {dicionario_texto}
+"""
+
+    agente = create_pandas_dataframe_agent(
+        modelo,
+        df=lista_dataframes,  # Passa o dicionário completo! Assim o agente conhece os nomes das variáveis.
+        prefix=instrucoes,
+        verbose=True,
+        allow_dangerous_code=True,
+        agent_type="openai-tools",
+        max_iterations=8,
+        early_stopping_method="generate",
+    )
+
+    return agente
+
+
+def executar_pergunta(agente, pergunta_usuario, historico_mensagens=None):
+    """
+    Função auxiliar para chamar o agente e garantir que
+    retorne APENAS o texto limpo, sem metadados JSON.
+    """
+    contexto_historico = ""
+    if historico_mensagens:
+
+        ultimas_mensagens = historico_mensagens[-6:]
+        contexto_historico = "Histórico recente da conversa:\n"
+        for msg in ultimas_mensagens:
+            papel = "Usuário" if msg["role"] == "user" else "Assistente"
+            contexto_historico += f"{papel}: {msg['content']}\n"
+        contexto_historico += "\n"
+
+    prompt_completo = (
+        f"{contexto_historico}"
+        f"Pergunta atual do usuário: {pergunta_usuario}"
+    )
+    resposta = agente.invoke({"input": prompt_completo})
+
+    # Se o retorno for um dicionário do LangChain
+    if isinstance(resposta, dict):
+        conteudo = resposta.get("output", resposta)
+    else:
+        conteudo = resposta
+
+    # Se a saída for uma lista de blocos (como o Gemini costuma devolver no openai-tools)
+    if isinstance(conteudo, list) and len(conteudo) > 0:
+        item = conteudo[0]
+        if isinstance(item, dict) and "text" in item:
+            return item["text"]
+        return str(item)
+
+    return str(conteudo)#src/carregador.py
+from pathlib import Path
+import pandas as pd
+from .xml_carregador import carregar_xmls
+
+
+def ler_csv(caminho):
+    """
+    Lê um CSV tentando várias combinações de encoding, com
+    detecção automática de separador (sep=None + engine='python').
+
+    Já cobre os casos mais comuns no Brasil (';' e ',', UTF-8,
+    UTF-8 com BOM e Latin-1), então não é necessário trocar por
+    uma versão com tentativas fixas de separador.
+    """
+    configuracoes = [
+        {"encoding": "utf-8", "sep": None},
+        {"encoding": "utf-8-sig", "sep": None},
+        {"encoding": "latin1", "sep": None},
+    ]
+
+    ultimo_erro = None
+
+    for configuracao in configuracoes:
+        try:
+            tabela = pd.read_csv(
+                caminho,
+                engine="python",
+                on_bad_lines="warn",
+                **configuracao
+            )
+
+            tabela.columns = [
+                str(coluna)
+                .strip()
+                .lower()
+                .replace(" ", "_")
+                for coluna in tabela.columns
+            ]
+
+            return tabela
+
+        except Exception as erro:
+            ultimo_erro = erro
+
+    raise ValueError(
+        f"Não foi possível ler o arquivo {caminho}: {ultimo_erro}"
+    )
+
+
+def remover_duplicados(df, nome_tabela="tabela", verbose=True):
+    """
+    Verifica e remove linhas 100% duplicadas de um DataFrame.
+
+    Parâmetros:
+    -----------
+    df : pandas.DataFrame
+    nome_tabela : str
+        Usado apenas para identificar a tabela nos logs.
+    verbose : bool
+        Se True, imprime o relatório e remove as duplicatas.
+        Se False, apenas calcula e retorna o df original (modo "dry run").
+
+    Retorna:
+    --------
+    pandas.DataFrame : df sem duplicatas (ou o original, se verbose=False)
+    """
+
+    duplicatas_completas = df.duplicated(keep=False)
+    total_duplicadas = duplicatas_completas.sum()
+    linhas_unicas = (~duplicatas_completas).sum()
+
+    if verbose:
+        print(f"— {nome_tabela} —")
+        print(f"Total de registros            : {df.shape[0]}")
+        print(f"Total de registros duplicados  : {total_duplicadas}")
+        print(f">> registros únicos            : {linhas_unicas}")
+        print("-" * 42)
+
+    if total_duplicadas == 0:
+        return df
+
+    df_out = df.drop_duplicates(keep="first").reset_index(drop=True)
+
+    if verbose:
+        print(f"✓ {nome_tabela}: {total_duplicadas} linha(s) duplicada(s) removida(s).")
+
+    return df_out
+
+
+def _converter_coluna_data(serie_original):
+    """
+    Converte uma coluna de datas que pode misturar formato ISO
+    (ex.: "2024-01-05T10:00:00", vindo de NF-e/XML) e formato
+    brasileiro (ex.: "05/01/2024", vindo de CSV).
+
+    IMPORTANTE: usar dayfirst=True junto com format='mixed' faz o
+    pandas (testado na 3.0.x) inverter mês/dia até em datas ISO
+    não-ambíguas (ex.: "2024-01-05" virava 1º de maio em vez de
+    5 de janeiro). Por isso as datas ISO são parseadas separadamente,
+    sem dayfirst, e só o restante (formato BR, com "/") usa dayfirst=True.
+    """
+
+    serie_texto = serie_original.astype(str)
+    resultado = pd.Series(pd.NaT, index=serie_original.index, dtype="datetime64[ns]")
+
+    valida = serie_original.notna() & (serie_texto.str.lower() != "nan")
+
+    # Datas em formato ISO (AAAA-MM-DD, com ou sem hora) — sem ambiguidade
+    mascara_iso = valida & serie_texto.str.match(r"^\d{4}-\d{2}-\d{2}")
+    if mascara_iso.any():
+        resultado.loc[mascara_iso] = pd.to_datetime(
+            serie_texto.loc[mascara_iso], format="ISO8601", errors="coerce"
+        )
+
+    # Demais formatos (ex.: DD/MM/AAAA, típico de planilhas brasileiras)
+    mascara_resto = valida & ~mascara_iso
+    if mascara_resto.any():
+        resultado.loc[mascara_resto] = pd.to_datetime(
+            serie_texto.loc[mascara_resto], dayfirst=True, errors="coerce"
+        )
+
+    return resultado
+
+
+def transformar_dataframe(df, verbose=True):
+
+    """
+    Detecta e converte automaticamente colunas de um DataFrame para
+    tipos apropriados (datas, valores monetários, quantidades e
+    identificadores numéricos), com base no NOME da coluna.
+
+    Funciona tanto com as tabelas vindas de CSV (colunas normalizadas
+    para minúsculo/snake_case por `ler_csv`) quanto com as tabelas
+    vindas de NF-e/XML (`notas_fiscais`, `itens_nfe`), pois a busca por
+    palavras-chave é feita em minúsculo (case-insensitive).
+
+    Todas as etapas são "best effort": se uma coluna esperada não
+    existir na tabela, a etapa é simplesmente pulada (não gera erro).
+    """
+
+    df_t = df.copy()
+    colunas_lower = {col: col.lower() for col in df_t.columns}
+
+    if verbose:
+        print("=" * 70)
+        print("🔄 TRANSFORMANDO DATAFRAME")
+        print("=" * 70)
+
+    # 1. Colunas de data (qualquer coluna com "data" no nome)
+    colunas_data = [c for c, low in colunas_lower.items() if "data" in low]
+
+    for col in colunas_data:
+        try:
+            if df_t[col].notna().sum() == 0:
+                if verbose:
+                    print(f"⚠️ {col} - Coluna vazia, ignorando")
+                continue
+
+            df_t[col] = _converter_coluna_data(df_t[col])
+
+            n_nulos = df_t[col].isna().sum()
+            total = len(df_t)
+            if verbose:
+                print(f"✅ {col} → datetime ({total - n_nulos}/{total} linhas válidas)")
+
+        except Exception as e:
+            if verbose:
+                print(f"⚠️ {col} - Não foi possível converter: {e}")
+
+    # 2. Colunas de valores monetários (valor, total, unit[ário/ario])
+    colunas_valor = [
+        c for c, low in colunas_lower.items()
+        if any(x in low for x in ["valor", "total", "unit"])
+    ]
+
+    for col in colunas_valor:
+        try:
+            if not pd.api.types.is_numeric_dtype(df_t[col]):
+                serie = df_t[col].astype(str)
+                serie = serie.str.replace("R$", "", regex=False)
+                serie = serie.str.replace(" ", "", regex=False)
+                serie = serie.str.replace(".", "", regex=False)   # milhar
+                serie = serie.str.replace(",", ".", regex=False)  # decimal
+                df_t[col] = pd.to_numeric(serie, errors="coerce")
+                if verbose:
+                    print(f"✅ {col} → float (monetário)")
+            elif verbose:
+                print(f"ℹ️ {col} - Já é numérico ({df_t[col].dtype})")
+        except Exception as e:
+            if verbose:
+                print(f"⚠️ {col} - Não foi possível converter: {e}")
+
+    # 3. Colunas de quantidade
+    colunas_qtd = [
+        c for c, low in colunas_lower.items()
+        if any(x in low for x in ["quantidade", "qtd", "qtde"])
+    ]
+
+    for col in colunas_qtd:
+        try:
+            if not pd.api.types.is_numeric_dtype(df_t[col]):
+                serie = df_t[col].astype(str).str.replace(",", ".", regex=False)
+                df_t[col] = pd.to_numeric(serie, errors="coerce")
+                if verbose:
+                    print(f"✅ {col} → float")
+            elif verbose:
+                print(f"ℹ️ {col} - Já é numérico ({df_t[col].dtype})")
+        except Exception as e:
+            if verbose:
+                print(f"⚠️ {col} - Não foi possível converter: {e}")
+
+    # 4. Identificadores numéricos (série, número, cfop, ncm)
+    colunas_int = [
+        c for c, low in colunas_lower.items()
+        if any(x in low for x in ["serie", "série", "numero", "número", "cfop", "ncm"])
+    ]
+
+    for col in colunas_int:
+        try:
+            if not pd.api.types.is_numeric_dtype(df_t[col]):
+                serie = df_t[col].astype(str)
+                serie = serie.str.replace(".", "", regex=False)
+                serie = serie.str.replace(",", "", regex=False)
+                df_t[col] = pd.to_numeric(serie, errors="coerce").astype("Int64")
+                if verbose:
+                    print(f"✅ {col} → int")
+            elif verbose:
+                print(f"ℹ️ {col} - Já é numérico ({df_t[col].dtype})")
+        except Exception as e:
+            if verbose:
+                print(f"⚠️ {col} - Não foi possível converter: {e}")
+
+    # 5. Colunas auxiliares derivadas da data de emissão (se existir)
+    col_data_emissao = next(
+        (c for c, low in colunas_lower.items() if "data" in low and "emis" in low),
+        None
+    )
+
+    if col_data_emissao and pd.api.types.is_datetime64_any_dtype(df_t[col_data_emissao]):
+        df_t["dia"] = df_t[col_data_emissao].dt.day
+        df_t["hora"] = df_t[col_data_emissao].dt.hour
+        df_t["dia_semana"] = df_t[col_data_emissao].dt.day_name()
+        if verbose:
+            print("✅ Colunas auxiliares criadas: dia, hora, dia_semana")
+
+    # 6. Valor total do item (só se houver quantidade e valor unitário,
+    #    e ainda não existir uma coluna de valor total pronta)
+    col_qtd = next((c for c, low in colunas_lower.items() if low == "quantidade"), None)
+    col_valor_unit = next((c for c, low in colunas_lower.items() if "unit" in low), None)
+    col_valor_total = next((c for c, low in colunas_lower.items() if "total" in low), None)
+
+    if col_qtd and col_valor_unit and not col_valor_total:
+        df_t["valor_total_item"] = df_t[col_qtd] * df_t[col_valor_unit]
+        if verbose:
+            print("✅ Coluna auxiliar criada: valor_total_item")
+    elif col_qtd and col_valor_total:
+        df_t["valor_total_item"] = df_t[col_valor_total]
+        if verbose:
+            print("✅ Coluna auxiliar criada: valor_total_item (a partir de coluna de total existente)")
+
+    if verbose:
+        print("=" * 70)
+        print("✅ TRANSFORMAÇÃO CONCLUÍDA!")
+        print("=" * 70)
+
+    return df_t
+
+
+def carregar_tabelas(pasta):
+    pasta = Path(pasta)
+    tabelas = {}
+
+    for caminho in pasta.rglob("*"):
+        if not caminho.is_file():
+            continue
+
+        if caminho.suffix.lower() != ".csv":
+            continue
+
+        if caminho.name.lower() == "dicionario_dados.csv":
+            continue
+
+        tabela = ler_csv(caminho)
+
+        if tabela.empty:
+            raise ValueError(
+                f"O arquivo {caminho.name} está vazio."
+            )
+
+        if len(tabela) > 1_000_000:
+            raise ValueError(
+                f"O arquivo {caminho.name} possui linhas demais."
+            )
+
+        nome_tabela = caminho.stem.lower()
+        tabelas[nome_tabela] = tabela
+
+    if not tabelas:
+        raise ValueError(
+            "Nenhum arquivo CSV foi encontrado no ZIP."
+        )
+
+    return tabelas
+
+
+def carregar_dicionario(pasta, tabelas):
+    """
+    Tenta carregar o dicionário de dados.
+    Se ele não existir, cria um automaticamente
+    usando os nomes das colunas.
+    """
+
+    pasta = Path(pasta)
+    caminho = pasta / "dicionario_dados.csv"
+
+    if caminho.exists():
+        dicionario = ler_csv(caminho)
+
+        colunas_obrigatorias = {
+            "arquivo",
+            "coluna",
+            "descricao",
+            "tipo"
+        }
+
+        faltantes = colunas_obrigatorias - set(dicionario.columns)
+
+        if faltantes:
+            raise ValueError(
+                f"O dicionário não possui estas colunas: {faltantes}"
+            )
+
+        return dicionario
+
+    linhas = []
+
+    for nome_tabela, tabela in tabelas.items():
+        for coluna in tabela.columns:
+            tipo_python = str(tabela[coluna].dtype)
+
+            linhas.append({
+                "arquivo": f"{nome_tabela}.csv",
+                "coluna": coluna,
+                "descricao": (
+                    f"Coluna {coluna} da tabela {nome_tabela}"
+                ),
+                "tipo": tipo_python
+            })
+
+    if not linhas:
+        raise ValueError(
+            "Não foi possível criar o dicionário automaticamente."
+        )
+
+    return pd.DataFrame(linhas)
+
+
+def dicionario_em_texto(dicionario):
+    linhas = []
+
+    for _, linha in dicionario.iterrows():
+        linhas.append(
+            f"- Arquivo: {linha['arquivo']}; "
+            f"coluna: {linha['coluna']}; "
+            f"descrição: {linha['descricao']}; "
+            f"tipo: {linha['tipo']}"
+        )
+
+    return "\n".join(linhas)
+
+
+def carregar_dados(pasta, transformar=True, remover_duplicatas=True, verbose=True):
+    """
+    Carrega arquivos CSV e XML e, por padrão, aplica em seguida:
+      1) transformar_dataframe  -> conversão de tipos (datas, valores, qtd, ids)
+      2) remover_duplicados     -> remoção de linhas 100% duplicadas
+
+    A transformação roda ANTES da remoção de duplicatas, pois duas linhas
+    podem só parecer diferentes por causa de formatação de texto
+    (ex.: "1.234,56" vs "1234,56") — depois de convertidas para número/data,
+    elas podem se revelar duplicadas de fato.
+
+    transformar / remover_duplicatas podem ser desativados (False) caso
+    se queira apenas inspecionar os dados brutos.
+    """
+
+    tabelas = {}
+    erros_xml = []
+
+    # Tenta carregar os arquivos CSV
+    try:
+        tabelas_csv = carregar_tabelas(pasta)
+        tabelas.update(tabelas_csv)
+
+    except ValueError as erro:
+        if "Nenhum arquivo CSV" not in str(erro):
+            raise
+
+    # Procura e carrega arquivos XML, se existirem
+    pasta_path = Path(pasta)
+
+    arquivos_xml = [
+        caminho
+        for caminho in pasta_path.rglob("*")
+        if caminho.is_file()
+        and caminho.suffix.lower() == ".xml"
+    ]
+
+    if arquivos_xml:
+        tabelas_xml, erros_xml = carregar_xmls(pasta)
+        tabelas.update(tabelas_xml)
+
+    if not tabelas:
+        raise ValueError(
+            "O ZIP não contém CSVs nem XMLs válidos."
+        )
+
+    # Etapa de processamento: transformação + remoção de duplicados
+    for nome_tabela, tabela in tabelas.items():
+        if transformar:
+            tabela = transformar_dataframe(tabela, verbose=verbose)
+
+        if remover_duplicatas:
+            tabela = remover_duplicados(tabela, nome_tabela=nome_tabela, verbose=verbose)
+
+        tabelas[nome_tabela] = tabela
+
+    return tabelas, erros_xml#src/kpis.py
+"""
+Funções de apoio para o dashboard da Interface B.
+
+Como as tabelas carregadas vêm de ZIPs enviados pelo usuário, não há
+garantia absoluta do nome exato de cada coluna. Por isso, a localização
+de colunas é feita por palavras-chave (case/acento-insensitive) em vez
+de nomes fixos — se uma coluna não for encontrada, o KPI/gráfico
+correspondente é simplesmente omitido, sem quebrar a página.
+"""
+
+import unicodedata
+
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+
+
+# Paleta de cores do dashboard — tons frios/azuis, fugindo do padrão
+# vermelho/laranja do Streamlit.
+CORES = {
+    "fundo": "#0B1F3A",
+    "fundo_card": "#122A4A",
+    "linha": "#1E3A5F",
+    "texto": "#E8F1F8",
+    "texto_suave": "#8FB4D9",
+    "acento": "#2EC4B6",
+    "acento_forte": "#4CC9F0",
+}
+
+# Escala contínua usada em todos os gráficos com gradiente
+ESCALA_AZUL = ["#12314F", "#1B4B72", "#2472A4", "#2EC4B6", "#4CC9F0"]
+
+# Sequência discreta (para gráficos com várias categorias/barras)
+SEQUENCIA_AZUL = ["#2EC4B6", "#4CC9F0", "#3A86FF", "#1B4B72", "#8ECAE6", "#5390D9"]
+
+LAYOUT_PADRAO = dict(
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+    font=dict(color=CORES["texto"], family="Inter, sans-serif"),
+    title_font=dict(color=CORES["texto"], size=16),
+    margin=dict(l=10, r=10, t=50, b=10),
+    xaxis=dict(gridcolor=CORES["linha"], zerolinecolor=CORES["linha"]),
+    yaxis=dict(gridcolor=CORES["linha"], zerolinecolor=CORES["linha"]),
+    legend=dict(bgcolor="rgba(0,0,0,0)"),
+)
+
+
+def _normalizar(texto):
+    texto = str(texto).lower()
+    texto = unicodedata.normalize("NFKD", texto).encode("ascii", "ignore").decode("ascii")
+    return texto
+
+
+# def achar_coluna(df, *grupos_palavras):
+#     """
+#     Procura, em ordem de prioridade, a primeira coluna cujo nome
+#     (normalizado) contenha TODAS as palavras de algum dos grupos.
+#
+#     Exemplo: achar_coluna(df, ["uf", "emit"], ["uf"]) primeiro tenta achar
+#     uma coluna com "uf" E "emit" no nome; se não achar nenhuma, tenta
+#     achar qualquer coluna que tenha só "uf".
+#     """
+#     colunas_norm = {coluna: _normalizar(coluna) for coluna in df.columns}
+#
+#     for grupo in grupos_palavras:
+#         palavras_norm = [_normalizar(p) for p in grupo]
+#         for coluna, nome_norm in colunas_norm.items():
+#             if all(p in nome_norm for p in palavras_norm):
+#                 return coluna
+#
+#     return None
+
+def achar_coluna(df, *grupos_palavras, exata=False):
+    """
+    Procura colunas por nome normalizado. vs2
+
+    exata=False:
+        procura colunas que contenham todas as palavras do grupo.
+
+    exata=True:
+        procura correspondência exata com o nome normalizado.
+    """
+
+    colunas_norm = {
+        coluna: _normalizar(coluna)
+        for coluna in df.columns
+    }
+
+    for grupo in grupos_palavras:
+        palavras_norm = [_normalizar(p) for p in grupo]
+
+        for coluna, nome_norm in colunas_norm.items():
+
+            if exata:
+                if len(palavras_norm) == 1 and nome_norm == palavras_norm[0]:
+                    return coluna
+
+            else:
+                if all(p in nome_norm for p in palavras_norm):
+                    return coluna
+
+    return None
+
+#vs1-claude
+# def identificar_tabelas(tabelas: dict):
+#     """
+#     Tenta identificar, entre as tabelas carregadas, qual é a tabela de
+#     "notas" (cabeçalho da NF-e, 1 linha por nota) e qual é a de "itens"
+#     (1 linha por produto/serviço da nota).
+#
+#     Retorna (nome_notas, df_notas, nome_itens, df_itens); qualquer um
+#     dos dois pode vir como None se não for identificado.
+#     """
+#     candidata_notas = None
+#     candidata_itens = None
+#
+#     for nome, df in tabelas.items():
+#         if df is None or df.empty:
+#             continue
+#
+#         tem_valor_nota = achar_coluna(df, ["valor", "nota"]) is not None
+#         tem_uf = achar_coluna(df, ["uf"]) is not None
+#         tem_produto = achar_coluna(df, ["produto"]) is not None
+#         tem_ncm = achar_coluna(df, ["ncm"]) is not None
+#         tem_quantidade = achar_coluna(df, ["quantidade"]) is not None
+#
+#         if candidata_notas is None and (tem_valor_nota or tem_uf):
+#             candidata_notas = nome
+#
+#         if candidata_itens is None and (tem_produto or tem_ncm) and tem_quantidade:
+#             candidata_itens = nome
+#
+#     # Se só existir uma tabela, ela serve para os dois papéis
+#     if candidata_notas is None and len(tabelas) >= 1:
+#         candidata_notas = next(iter(tabelas))
+#     if candidata_itens is None and len(tabelas) >= 1:
+#         candidata_itens = candidata_notas or next(iter(tabelas))
+#
+#     df_notas = tabelas.get(candidata_notas) if candidata_notas else None
+#     df_itens = tabelas.get(candidata_itens) if candidata_itens else None
+#
+#     return candidata_notas, df_notas, candidata_itens, df_itens
+
+
+#vs3
+def identificar_tabelas(tabelas: dict):
+    """
+    Identifica semanticamente as tabelas de notas fiscais e itens.
+
+    A identificação é baseada na estrutura das colunas, e não no nome
+    do arquivo.
+
+    Tabela de notas:
+        Uma linha representa uma NF.
+
+    Tabela de itens:
+        Uma linha representa um item/produto de uma NF.
+    """
+
+    candidata_notas = None
+    candidata_itens = None
+
+    melhor_score_notas = -1
+    melhor_score_itens = -1
+
+    for nome, df in tabelas.items():
+
+        if df is None or df.empty:
+            continue
+
+        # ---------------------------------------------------------
+        # Normalização dos nomes das colunas
+        # ---------------------------------------------------------
+        colunas = {
+            _normalizar(str(c))
+            for c in df.columns
+        }
+
+        # =========================================================
+        # SCORE — TABELA DE NOTAS
+        # =========================================================
+
+        score_notas = 0
+
+        # Identificador da NF
+        if "chave_de_acesso" in colunas:
+            score_notas += 15
+
+        if "numero" in colunas:
+            score_notas += 8
+
+        if "serie" in colunas:
+            score_notas += 5
+
+        # Data/hora da NF
+        if "data_emissao" in colunas:
+            score_notas += 8
+
+        # Valor total da NF
+        if "valor_nota_fiscal" in colunas:
+            score_notas += 15
+
+        # Dados do emitente/destinatário
+        if "cpf/cnpj_emitente" in colunas:
+            score_notas += 3
+
+        if "razao_social_emitente" in colunas:
+            score_notas += 3
+
+        if "uf_emitente" in colunas:
+            score_notas += 3
+
+        if "uf_destinatario" in colunas:
+            score_notas += 3
+
+        # =========================================================
+        # SCORE — TABELA DE ITENS
+        # =========================================================
+
+        score_itens = 0
+
+        # Identificação do produto
+        if "numero_produto" in colunas:
+            score_itens += 10
+
+        if "descricao_do_produto/servico" in colunas:
+            score_itens += 15
+
+        # Quantidade e valores
+        if "quantidade" in colunas:
+            score_itens += 12
+
+        if "unidade" in colunas:
+            score_itens += 5
+
+        if "valor_unitario" in colunas:
+            score_itens += 8
+
+        if "valor_total_item" in colunas:
+            score_itens += 15
+
+        # Informações fiscais do item
+        if "codigo_ncm/sh" in colunas:
+            score_itens += 5
+
+        if "cfop" in colunas:
+            score_itens += 5
+
+        # =========================================================
+        # Guarda a melhor tabela de NOTAS
+        # =========================================================
+
+        if score_notas > melhor_score_notas:
+            melhor_score_notas = score_notas
+            candidata_notas = nome
+
+        # =========================================================
+        # Guarda a melhor tabela de ITENS
+        # =========================================================
+
+        if score_itens > melhor_score_itens:
+            melhor_score_itens = score_itens
+            candidata_itens = nome
+
+    # =============================================================
+    # Evita que a mesma tabela seja escolhida para os dois papéis
+    # =============================================================
+
+    if candidata_notas == candidata_itens:
+
+        # Procurar outra tabela para itens
+        melhor_outro_score = -1
+        melhor_outro_nome = None
+
+        for nome, df in tabelas.items():
+
+            if nome == candidata_notas:
+                continue
+
+            if df is None or df.empty:
+                continue
+
+            colunas = {
+                _normalizar(str(c))
+                for c in df.columns
+            }
+
+            score = 0
+
+            if "numero_produto" in colunas:
+                score += 10
+
+            if "descricao_do_produto/servico" in colunas:
+                score += 15
+
+            if "quantidade" in colunas:
+                score += 12
+
+            if "valor_unitario" in colunas:
+                score += 8
+
+            if "valor_total_item" in colunas:
+                score += 15
+
+            if "codigo_ncm/sh" in colunas:
+                score += 5
+
+            if "cfop" in colunas:
+                score += 5
+
+            if score > melhor_outro_score:
+                melhor_outro_score = score
+                melhor_outro_nome = nome
+
+        if melhor_outro_nome is not None:
+            candidata_itens = melhor_outro_nome
+
+    # =============================================================
+    # Recupera os DataFrames
+    # =============================================================
+
+    df_notas = (
+        tabelas.get(candidata_notas)
+        if candidata_notas
+        else None
+    )
+
+    df_itens = (
+        tabelas.get(candidata_itens)
+        if candidata_itens
+        else None
+    )
+
+    return (
+        candidata_notas,
+        df_notas,
+        candidata_itens,
+        df_itens,
+    )
+
+def formatar_moeda(valor):
+    if valor is None or pd.isna(valor):
+        return "—"
+    texto = f"{valor:,.2f}"
+    texto = texto.replace(",", "§").replace(".", ",").replace("§", ".")
+    return f"R$ {texto}"
+
+
+def formatar_numero(valor):
+    if valor is None or pd.isna(valor):
+        return "—"
+    texto = f"{valor:,.0f}"
+    return texto.replace(",", ".")
+
+
+def calcular_kpis(tabelas: dict) -> dict:
+    """
+    Calcula os KPIs principais do painel a partir das tabelas
+    carregadas. Cada chave retorna None quando o dado não pôde ser
+    encontrado — quem renderiza decide como exibir isso.
+    """
+    nome_notas, df_notas, nome_itens, df_itens = identificar_tabelas(tabelas)
+
+    total_notas = None
+    valor_total = None
+    total_itens = None
+    quantidade_comercializada = None
+    ticket_medio = None
+
+    if df_notas is not None:
+
+        col_chave = achar_coluna(df_notas,["chave_de_acesso"],exata=True)
+        col_numero = achar_coluna(df_notas,["numero"],exata=True)
+
+        if col_chave:
+            total_notas = df_notas[col_chave].nunique()
+
+        elif col_numero:
+            total_notas = df_notas[col_numero].nunique()
+
+        else:
+            total_notas = len(df_notas)
+
+        # --------------------------------------------------------
+        # Valor total das notas
+        # --------------------------------------------------------
+
+        col_valor_nota = achar_coluna(df_notas,["valor_nota_fiscal"],exata=True)
+
+        # fallback para outros formatos de tabela
+        if col_valor_nota is None:
+            col_valor_nota = achar_coluna(
+                df_notas,
+                ["valor", "nota"])
+
+        if (
+            col_valor_nota
+            and pd.api.types.is_numeric_dtype(
+                df_notas[col_valor_nota]
+            )
+        ):
+            valor_total = df_notas[col_valor_nota].sum()
+
+
+    if df_itens is not None:
+
+        #Quantidade de Registros de itens
+        total_itens=len(df_itens)
+
+        #soma da quantidade comercial declarada
+        col_quantidade = achar_coluna(df_itens, ["quantidade"])
+
+        if col_quantidade and pd.api.types.is_numeric_dtype(df_itens[col_quantidade]):
+
+            quantidade_comercializada = df_itens[col_quantidade].sum()
+
+
+        if valor_total is None:
+            col_valor_item = achar_coluna(df_itens, ["valor_total_item"], ["valor", "total"])
+            if col_valor_item and pd.api.types.is_numeric_dtype(df_itens[col_valor_item]):
+                valor_total = df_itens[col_valor_item].sum()
+
+    if valor_total is not None and total_notas:
+        ticket_medio = valor_total / total_notas
+
+    return {
+        "total_notas": total_notas,
+        "valor_total": valor_total,
+        "total_itens": total_itens,
+        "quantidade_comercializada": quantidade_comercializada,
+        "ticket_medio": ticket_medio,
+        "nome_notas": nome_notas,
+        "nome_itens": nome_itens,
+    }
+
+
+def grafico_distribuicao_hora(df):
+    col_hora = achar_coluna(df, ["hora"])
+
+    col_hora = next(
+        (
+            col for col in df.columns
+            if _normalizar(col) == "hora"
+        ),
+        None
+    )
+
+    if col_hora is None:
+        return None
+    if not pd.api.types.is_numeric_dtype(df[col_hora]):
+        return None
+
+    contagem = (
+        df[col_hora]
+        .dropna()
+        .astype(int)
+        .value_counts()
+        .reindex(range(24), fill_value=0)
+        .sort_index()
+    )
+
+    fig = px.bar(
+        x=contagem.index,
+        y=contagem.values,
+        labels={"x": "Hora do dia", "y": "Qtd. de notas"},
+        color=contagem.values,
+        color_continuous_scale=ESCALA_AZUL,
+    )
+    fig.update_layout(**LAYOUT_PADRAO, title="Distribuição de Notas por Hora", coloraxis_showscale=False)
+    return fig
+
+
+def grafico_top_categorias(df, coluna, titulo, top_n=10):
+    if not coluna:
+        return None
+
+    contagem = df[coluna].dropna().value_counts().head(top_n).sort_values(ascending=True)
+    if contagem.empty:
+        return None
+
+    fig = px.bar(
+        x=contagem.values,
+        y=contagem.index.astype(str),
+        orientation="h",
+        labels={"x": "Quantidade de notas", "y": ""},
+        color=contagem.values,
+        color_continuous_scale=ESCALA_AZUL,
+    )
+    fig.update_layout(**LAYOUT_PADRAO, title=titulo, coloraxis_showscale=False)
+    return fig
+
+
+def grafico_valor_por_categoria(df, coluna_categoria, coluna_valor, titulo, top_n=10):
+    if not coluna_categoria or not coluna_valor:
+        return None
+    if not pd.api.types.is_numeric_dtype(df[coluna_valor]):
+        return None
+
+    valores = (
+        df.groupby(coluna_categoria)[coluna_valor]
+        .sum()
+        .sort_values(ascending=False)
+        .head(top_n)
+        .sort_values(ascending=True)
+    )
+    if valores.empty:
+        return None
+
+    fig = px.bar(
+        x=valores.values,
+        y=valores.index.astype(str),
+        orientation="h",
+        labels={"x": "Valor total (R$)", "y": ""},
+        color=valores.values,
+        color_continuous_scale=ESCALA_AZUL,
+    )
+    fig.update_layout(**LAYOUT_PADRAO, title=titulo, coloraxis_showscale=False)
+    return fig
+
+
+def grafico_top_produtos(df_itens, top_n=10, metrica="valor"):
+    """
+    metrica: "valor" (padrão) ou "quantidade" — define o critério de
+    ranking dos produtos.
+    """
+
+    col_produto = achar_coluna(df_itens, ["descricao", "produto"])
+    col_valor = achar_coluna(df_itens, ["valor_total_item"],exata=True)
+    col_qtd = achar_coluna(df_itens, ["quantidade"],exata=True)
+
+    col_ranking = col_qtd if metrica == "quantidade" else col_valor
+    if not col_produto or not col_ranking:
+        return None
+    if not pd.api.types.is_numeric_dtype(df_itens[col_ranking]):
+        return None
+
+    agregacoes = {col_ranking: "sum"}
+
+    top = (
+        df_itens.groupby(col_produto)
+        .agg(agregacoes)
+        .sort_values(col_ranking, ascending=False)
+        .head(top_n)
+        .sort_values(col_ranking, ascending=True)
+    )
+    if top.empty:
+        return None
+
+    rotulo_x = "Valor total (R$)" if metrica == "valor" else "Quantidade"
+    titulo = f"Top {top_n} Produtos por {'Valor' if metrica == 'valor' else 'Quantidade'}"
+
+    fig = px.bar(
+        x=top[col_ranking],
+        y=top.index.astype(str).str.slice(0, 40),
+        orientation="h",
+        labels={"x": rotulo_x, "y": ""},
+        color=top[col_ranking],
+        color_continuous_scale=ESCALA_AZUL,
+    )
+    fig.update_layout(**LAYOUT_PADRAO, title=titulo, coloraxis_showscale=False)
+    return fig
+
+
+
+def grafico_itens_por_dia(df_itens):
+
+    # Data de emissão da NF
+    col_data = achar_coluna(df_itens, ["data", "emissao"])
+
+    # Quantidade comercial do item
+    col_qtd = achar_coluna(df_itens,["quantidade"],exata=True)
+
+    if (
+        not col_data
+        or not pd.api.types.is_datetime64_any_dtype(
+            df_itens[col_data]
+        )
+    ):
+        return None
+
+
+    serie = df_itens.copy()
+
+    serie["_dia"] = serie[col_data].dt.date
+
+    if (
+        col_qtd
+        and pd.api.types.is_numeric_dtype(
+            serie[col_qtd]
+        )
+    ):
+        diario = (
+            serie
+            .groupby("_dia")[col_qtd]
+            .sum()
+        )
+
+        rotulo_y = "Quantidade comercializada"
+
+    else:
+        diario = (
+            serie
+            .groupby("_dia")
+            .size()
+        )
+
+        rotulo_y = "Quantidade de registros de itens"
+
+    if diario.empty:
+        return None
+
+    fig = px.bar(x=diario.index.astype(str),
+                 y=diario.values,
+                 labels={"x": "Data de emissão","y": rotulo_y},
+                 color=diario.values,
+                 color_continuous_scale=ESCALA_AZUL,)
+
+    fig.update_layout(**LAYOUT_PADRAO,
+                      title="Quantidade Comercializada por Dia",
+                      coloraxis_showscale=False
+    )
+
+
+
+    return fig
+#src/validador.py
+from pathlib import Path
+import zipfile
+
+
+def extrair_zip_seguro(arquivo_zip, pasta_destino, limite_total=500_000_000):
+    """
+    Extrai um ZIP impedindo que arquivos sejam gravados
+    fora da pasta de destino.
+    """
+
+    pasta_destino = Path(pasta_destino).resolve()
+    pasta_destino.mkdir(parents=True, exist_ok=True)
+
+    total_descompactado = 0
+
+    with zipfile.ZipFile(arquivo_zip, "r") as zip_ref:
+        arquivos = zip_ref.infolist()
+
+        if len(arquivos) > 100:
+            raise ValueError("O ZIP possui arquivos demais.")
+
+        for membro in arquivos:
+            total_descompactado += membro.file_size
+
+            if total_descompactado > limite_total:
+                raise ValueError(
+                    "O conteúdo descompactado ultrapassa o limite permitido."
+                )
+
+            caminho_final = (pasta_destino / membro.filename).resolve()
+
+            if not str(caminho_final).startswith(str(pasta_destino)):
+                raise ValueError(
+                    f"Arquivo com caminho inválido: {membro.filename}"
+                )
+
+            if membro.is_dir():
+                caminho_final.mkdir(parents=True, exist_ok=True)
+            else:
+                caminho_final.parent.mkdir(parents=True, exist_ok=True)
+
+                with zip_ref.open(membro) as origem:
+                    with open(caminho_final, "wb") as destino:
+                        destino.write(origem.read())#src/xml_carregador.py
+from pathlib import Path
+import xml.etree.ElementTree as ET
+
+import pandas as pd
+
+
+def encontrar_elemento(elemento, nome):
+    """
+    Procura uma tag ignorando o namespace do XML.
+    """
+
+    for filho in elemento.iter():
+        nome_tag = filho.tag.split("}")[-1]
+
+        if nome_tag == nome:
+            return filho
+
+    return None
+
+
+def texto(elemento, nome, padrao=""):
+    """
+    Procura uma tag e devolve seu texto.
+    """
+
+    encontrado = encontrar_elemento(elemento, nome)
+
+    if encontrado is None:
+        return padrao
+
+    if encontrado.text is None:
+        return padrao
+
+    return encontrado.text.strip()
+
+
+def converter_numero(valor, padrao=0.0):
+    """
+    Converte texto para número.
+    """
+
+    if valor is None or valor == "":
+        return padrao
+
+    try:
+        return float(str(valor).replace(",", "."))
+    except ValueError:
+        return padrao
+
+
+def extrair_uma_nfe(caminho_xml):
+    """
+    Lê uma NF-e e retorna:
+    - dados principais da nota;
+    - dados dos produtos.
+    """
+
+    try:
+        arvore = ET.parse(caminho_xml)
+        raiz = arvore.getroot()
+
+    except ET.ParseError as erro:
+        raise ValueError(
+            f"XML inválido: {caminho_xml.name}. Erro: {erro}"
+        )
+
+    inf_nfe = encontrar_elemento(raiz, "infNFe")
+
+    if inf_nfe is None:
+        raise ValueError(
+            f"{caminho_xml.name} não possui a tag infNFe."
+        )
+
+    identificacao = encontrar_elemento(
+        inf_nfe,
+        "ide"
+    )
+
+    emitente = encontrar_elemento(
+        inf_nfe,
+        "emit"
+    )
+
+    destinatario = encontrar_elemento(
+        inf_nfe,
+        "dest"
+    )
+
+    totais = encontrar_elemento(
+        inf_nfe,
+        "ICMSTot"
+    )
+
+    if identificacao is None:
+        identificacao = inf_nfe
+
+    if emitente is None:
+        emitente = inf_nfe
+
+    if destinatario is None:
+        destinatario = inf_nfe
+
+    if totais is None:
+        totais = inf_nfe
+
+    identificador = inf_nfe.attrib.get(
+        "Id",
+        ""
+    )
+
+    chave_nfe = identificador.replace(
+        "NFe",
+        ""
+    )
+
+    dados_nota = {
+        "arquivo_xml": caminho_xml.name,
+        "chave_nfe": chave_nfe,
+        "numero_nota": texto(identificacao, "nNF"),
+        "serie": texto(identificacao, "serie"),
+        "data_emissao": (
+            texto(identificacao, "dhEmi")
+            or texto(identificacao, "dEmi")
+        ),
+        "natureza_operacao": texto(
+            identificacao,
+            "natOp"
+        ),
+        "emitente_cnpj": texto(
+            emitente,
+            "CNPJ"
+        ),
+        "emitente_nome": texto(
+            emitente,
+            "xNome"
+        ),
+        "destinatario_cnpj": (
+            texto(destinatario, "CNPJ")
+            or texto(destinatario, "CPF")
+        ),
+        "destinatario_nome": texto(
+            destinatario,
+            "xNome"
+        ),
+        "valor_produtos": converter_numero(
+            texto(totais, "vProd")
+        ),
+        "valor_nota": converter_numero(
+            texto(totais, "vNF")
+        )
+    }
+
+    itens = []
+
+    for elemento in inf_nfe.iter():
+        nome_tag = elemento.tag.split("}")[-1]
+
+        if nome_tag != "det":
+            continue
+
+        produto = encontrar_elemento(
+            elemento,
+            "prod"
+        )
+
+        if produto is None:
+            continue
+
+        dados_item = {
+            "arquivo_xml": caminho_xml.name,
+            "chave_nfe": chave_nfe,
+            "numero_nota": dados_nota[
+                "numero_nota"
+            ],
+            "produto_codigo": texto(
+                produto,
+                "cProd"
+            ),
+            "produto_nome": texto(
+                produto,
+                "xProd"
+            ),
+            "ncm": texto(
+                produto,
+                "NCM"
+            ),
+            "cfop": texto(
+                produto,
+                "CFOP"
+            ),
+            "unidade": texto(
+                produto,
+                "uCom"
+            ),
+            "quantidade": converter_numero(
+                texto(produto, "qCom")
+            ),
+            "valor_unitario": converter_numero(
+                texto(produto, "vUnCom")
+            ),
+            "valor_produto": converter_numero(
+                texto(produto, "vProd")
+            )
+        }
+
+        itens.append(dados_item)
+
+    return dados_nota, itens
+
+
+def carregar_xmls(pasta):
+    """
+    Procura e carrega todos os XMLs da pasta.
+    """
+
+    pasta = Path(pasta)
+
+    arquivos_xml = [
+        caminho
+        for caminho in pasta.rglob("*")
+        if caminho.is_file()
+        and caminho.suffix.lower() == ".xml"
+    ]
+
+    if not arquivos_xml:
+        raise ValueError(
+            "Nenhum arquivo XML foi encontrado."
+        )
+
+    notas = []
+    itens = []
+    erros = []
+
+    for caminho_xml in arquivos_xml:
+        try:
+            dados_nota, dados_itens = extrair_uma_nfe(
+                caminho_xml
+            )
+
+            notas.append(dados_nota)
+            itens.extend(dados_itens)
+
+        except Exception as erro:
+            erros.append(str(erro))
+
+    if not notas:
+        raise ValueError(
+            "Nenhuma NF-e pôde ser lida."
+        )
+
+    tabelas = {
+        "notas_fiscais": pd.DataFrame(notas),
+        "itens_nfe": pd.DataFrame(itens)
+    }
+
+    return tabelas, erros

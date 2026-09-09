@@ -54,6 +54,6 @@ if prompt := st.chat_input("Pergunte algo sobre o relatório de segurança públ
             except requests.exceptions.ConnectionError:
                 st.error("Falha na conexão! O servidor do FastAPI (uvicorn) está rodando na porta 9010?")
 
-# streamlit run app/app.py --server.port 9011
+# streamlit run app/app.old.py --server.port 9011
 
 

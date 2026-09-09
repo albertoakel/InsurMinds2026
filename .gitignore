@@ -33,6 +33,7 @@ organização.txt
 *.zip
 *.pdf
 *.bin
+
 Agente_Dados_Fiscais/sandbox/
 notebooks/documentosvectorstore/
 

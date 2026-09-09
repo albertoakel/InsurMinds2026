@@ -94,7 +94,7 @@ A aplicação foi organizada de maneira modular:
 
 Essa organização separa a interface, o processamento dos dados, o agente, os cálculos analíticos e os mecanismos de validação.
 
-### `app.py`
+### `app.old.py`
 
 Responsável pela:
 

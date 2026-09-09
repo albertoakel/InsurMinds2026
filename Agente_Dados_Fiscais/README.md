@@ -30,7 +30,7 @@ Aplicação Streamlit para processamento, análise e consulta inteligente de Not
 ├── .streamlit/
 │   └── config.toml          # Tema visual (cores)
 ├── src/
-│   ├── agente.py             # Criação do agente LangChain + execução de perguntas
+│  agente.py             # Criação do agente LangChain + execução de perguntas
 │   ├── carregador.py         # Leitura, transformação e deduplicação dos dados
 │   ├── kpis.py                # Cálculo de KPIs e geração dos gráficos Plotly
 │   ├── validador.py           # Extração segura do ZIP enviado
@@ -100,7 +100,7 @@ GOOGLE_API_KEY=sua_chave_aqui
 ### 5. Execute a aplicação
 
 ```bash
-streamlit run app.py
+streamlit run app.old.py
 ```
 
 Acesse `http://localhost:8501` no navegador, envie um `.zip` com as notas fiscais (CSV e/ou XML) pela barra lateral e clique em **Processar dados**.
