@@ -48,3 +48,6 @@ notebooks/documentosvectorstore/
 langchain_env/
 __pycache__/
 *.pyc
+
+# lista de exceções
+!Relatorio_Tecnico.pdf

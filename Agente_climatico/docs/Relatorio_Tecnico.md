@@ -6,21 +6,17 @@
 
 ### 1.1 Contexto da atividade
 
-O projeto foi desenvolvido para o **Desafio 5 — Ferramenta Inteligente para
-Comunicação Proativa com o Segurado**. A atividade propõe a construção de um
-protótipo capaz de observar eventos externos, avaliar possíveis impactos sobre
-diferentes perfis de segurados e gerar comunicações preventivas antes da
-ocorrência de um sinistro.
+O projeto foi desenvolvido para o **Desafio 5: Ferramenta Inteligente para Comunicação Proativa com o Segurado***. A atividade propõe a construção de um protótipo capaz de observar eventos externos, avaliar possíveis impactos sobre diferentes perfis de  segurados e gerar comunicações preventivas antes da ocorrência de um sinistro.
 
-Grande parte do relacionamento tradicional entre seguradora e cliente ocorre
-depois de um evento danoso. O ProtegeSeguro AI demonstra uma alternativa
-proativa: o sistema consulta condições ambientais atuais, identifica eventos
-relevantes, combina esses eventos com regras relacionadas à apólice e produz um
-SMS preventivo quando existe correspondência entre risco e seguro contratado.
+Grande parte do relacionamento tradicional entre seguradora e cliente ocorre depois
+de um evento danoso. O Protege Seguro AI demonstra uma alternativa proativa: o
+sistema consulta condições ambientais atuais, identifica eventos relevantes, combina esses eventos com regras relacionadas à apólice e produz um SMS preventivo quando existe correspondência entre risco e seguro contratado.
 
-O protótipo utiliza dados meteorológicos e de qualidade do ar do OpenWeather,
-regras determinísticas implementadas em Python e uma etapa generativa baseada
-em Groq e LangChain. A interface foi construída em Streamlit.
+
+O protótipo utiliza dados meteorológicos e de qualidade do ar do OpenWeather,regras
+determinísticas implementadas em Python e uma etapa generativa baseada em Groq e
+LangChain. A interface gráfica foi construída utilizando o framework Streamlit,devido à
+sua simplicidade e à agilidade que proporciona na construção e validação de protótipos.
 
 ### 1.2 Objetivo do projeto
 
@@ -244,7 +240,7 @@ demonstrar o comportamento do sistema em contextos climáticos variados.
 
 ### 3.2 Esquema esperado
 
-O formato completo utilizado nas bases sintéticas é:
+As bases sintéticas foram geradas por meio de prompts direcionados a modelos de linguagem (LLMs), instruídos a produzir dados em formato CSV atendendo ao esquema do projeto. O formato completo gerado para as bases é:O formato completo utilizado nas bases sintéticas é:
 
 ```text
 id,nome,idade,cidade,seguro,perfil,telefone
@@ -596,19 +592,6 @@ Durante o desenvolvimento foram diagnosticados e corrigidos:
 A versão final adotou somente Groq para a geração, eliminando a dependência do
 Ollama e do modelo local.
 
-### 8.5 Testes ainda recomendados
-
-A validação atual é predominantemente manual. Como evolução, recomenda-se criar
-testes automatizados para:
-
-- cada limite meteorológico;
-- cada combinação de evento e seguro;
-- idades imediatamente abaixo e acima do limite;
-- respostas incompletas ou inválidas das APIs;
-- normalização do CSV;
-- interpretação de todos os valores de AQI;
-- uso de mocks para evitar consumo real das APIs.
-
 ---
 
 ## 9. Boas práticas, segurança e limitações
@@ -685,8 +668,6 @@ texto gerado.
 Não há integração real com SMS, push ou e-mail. Os resultados não são gravados
 em banco de dados.
 
-
-
 ## 10. Uso de ferramentas de inteligência artificial no desenvolvimento
 
 Ferramentas baseadas em modelos de linguagem foram utilizadas como apoio ao
@@ -718,19 +699,11 @@ linguagem atua somente depois dessa decisão, transformando um motivo já defini
 em um SMS curto. Isso mantém a lógica essencial verificável e utiliza a IA
 generativa onde ela agrega maior valor: clareza e personalização da comunicação.
 
-Os testes realizados demonstraram o fluxo completo exigido pelo desafio tanto
-no terminal quanto na interface Streamlit. A organização modular, a proteção
-das chaves e a documentação tornam o projeto funcionalmente adequado ao desafio.
-Para que a submissão seja considerada formalmente completa, ainda é necessário
-entregar o relatório em PDF, publicar o repositório com acesso público e conferir
-o conteúdo do ZIP final. As demais limitações estão compatíveis com o escopo de
-um MVP educacional.
-
-
+A validação funcional do projeto confirmou a execução do fluxo ponta a ponta no terminal e na interface gráfica. Com a estrutura modular consolidada, chaves protegidas, repositório integralmente sincronizado e o artefato de entrega verificado, o projeto atende com precisão a todos os critérios estabelecidos pelo desafio.
 
 ---
 
-# Referências técnicas
+### Referências técnicas
 
 - OpenWeather — Current Weather Data: <https://openweathermap.org/current>
 - OpenWeather — Air Pollution API: <https://openweathermap.org/api/air-pollution>

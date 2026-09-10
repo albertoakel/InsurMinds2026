@@ -4,26 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a3e4521f-c062-4b41-98d9-b36721ac81d0" name="Changes" comment="updates">
-      <change afterPath="$PROJECT_DIR$/Agente_climatico/.streamlit/config.toml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Agente_climatico/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Agente_climatico/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Agente_climatico/sandbox/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Agente_climatico/sandbox/ai.agent.old.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Agente_climatico/sandbox/tester.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Agente_climatico/src/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Agente_climatico/src/air_quality_service.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Agente_climatico/src/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/InsurMinds2026.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/InsurMinds2026.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Agente_Dados_Fiscais/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/Agente_Dados_Fiscais/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Agente_Dados_Fiscais/Relatorio_Tecnico.md" beforeDir="false" afterPath="$PROJECT_DIR$/Agente_Dados_Fiscais/Relatorio_Tecnico.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Agente_Dados_Fiscais/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/Agente_Dados_Fiscais/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Agente_Dados_Fiscais/src/agente.py" beforeDir="false" afterPath="$PROJECT_DIR$/Agente_Dados_Fiscais/src/agente.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RAG_SegurancaPublica/app/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/RAG_SegurancaPublica/app/app.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/notebooks/Agentes_I2A2.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/Agentes_I2A2.ipynb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/notebooks/agente_dataframes_Benkmnark.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/notebooks/agente_dataframes_Benkmnark.ipynb" afterDir="false" />
+    <list default="true" id="a3e4521f-c062-4b41-98d9-b36721ac81d0" name="Changes" comment="updates relatorio_tecnico">
+      <change beforePath="$PROJECT_DIR$/Agente_climatico/docs/Relatorio_Tecnico.md" beforeDir="false" afterPath="$PROJECT_DIR$/Agente_climatico/docs/Relatorio_Tecnico.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -354,7 +336,23 @@
       <option name="project" value="LOCAL" />
       <updated>1787344781940</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="updates">
+      <option name="closed" value="true" />
+      <created>1788991768056</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1788991768057</updated>
+    </task>
+    <task id="LOCAL-00023" summary="updates relatorio_tecnico">
+      <option name="closed" value="true" />
+      <created>1788992987436</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1788992987436</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -378,7 +376,8 @@
     <MESSAGE value="update&#10;add memory in agnt&#10;add process in dataset&#10;add newlayout (kpi e plots)&#10;add ReadME" />
     <MESSAGE value="update&#10;add ReadME e config.toml" />
     <MESSAGE value="updates" />
-    <option name="LAST_COMMIT_MESSAGE" value="updates" />
+    <MESSAGE value="updates relatorio_tecnico" />
+    <option name="LAST_COMMIT_MESSAGE" value="updates relatorio_tecnico" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
