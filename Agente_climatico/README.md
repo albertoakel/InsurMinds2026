@@ -128,7 +128,11 @@ source .venv/bin/activate
 Mesmo dentro do conda, execute o `pip` do ambiente ativado:
 
 ```bash
+# Instalação normal
 python -m pip install -r requirements.txt
+
+# Instalação reproduzindo exatamente o ambiente validado
+python -m pip install -r requirements-lock.txt
 ```
 
 ### 4. Configure as variáveis de ambiente

@@ -12,7 +12,6 @@ Grande parte do relacionamento tradicional entre seguradora e cliente ocorre dep
 de um evento danoso. O Protege Seguro AI demonstra uma alternativa proativa: o
 sistema consulta condições ambientais atuais, identifica eventos relevantes, combina esses eventos com regras relacionadas à apólice e produz um SMS preventivo quando existe correspondência entre risco e seguro contratado.
 
-
 O protótipo utiliza dados meteorológicos e de qualidade do ar do OpenWeather,regras
 determinísticas implementadas em Python e uma etapa generativa baseada em Groq e
 LangChain. A interface gráfica foi construída utilizando o framework Streamlit,devido à
@@ -91,9 +90,17 @@ sem eliminar completamente a flexibilidade de redação.
 │   ├── clientes_sudeste.csv
 │   └── clientes_sul.csv
 ├── docs/
+│   ├── Relatorio_Tecnico.pdf
 │   └── Relatorio_Tecnico.md
 ├── scripts/
-│   └── test_openweather_api.py
+│   ├── __init__.py
+│   ├── run_tests.py
+│   ├── test_data_loader.py
+│   ├── test_event_detection.py
+│   ├── test_groq_api.py
+│   ├── test_openweather_api.py
+│   ├── test_rules_engine.py
+│   └── test_services_mock.py
 ├── src/
 │   ├── __init__.py
 │   ├── ai_agent.py
