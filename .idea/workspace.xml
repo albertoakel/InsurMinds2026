@@ -5,7 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a3e4521f-c062-4b41-98d9-b36721ac81d0" name="Changes" comment="updates relatorio_tecnico">
-      <change beforePath="$PROJECT_DIR$/Agente_climatico/docs/Relatorio_Tecnico.md" beforeDir="false" afterPath="$PROJECT_DIR$/Agente_climatico/docs/Relatorio_Tecnico.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Agente_climatico/__init__.py" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -113,6 +114,9 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python tests.Python tests in test_data_loader.py.executor": "Run",
+    "Python tests.Python tests in test_services_mock.py.executor": "Run",
+    "Python.__init__.executor": "Run",
     "Python.app.executor": "Run",
     "Python.config.executor": "Run",
     "Python.main.executor": "Run",
@@ -121,6 +125,9 @@
     "Python.mcp_helpers.executor": "Run",
     "Python.mcp_server.executor": "Run",
     "Python.mock_db.executor": "Run",
+    "Python.run_tests.executor": "Run",
+    "Python.test_groq_api.executor": "Run",
+    "Python.test_openweather_api.executor": "Run",
     "Python.tester.executor": "Run",
     "Python.tester_qualidade_ar.executor": "Run",
     "RunOnceActivity.MCP Project settings loaded": "true",
@@ -352,7 +359,15 @@
       <option name="project" value="LOCAL" />
       <updated>1788992987436</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="updates relatorio_tecnico">
+      <option name="closed" value="true" />
+      <created>1789050748222</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1789050748222</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
