@@ -492,6 +492,8 @@ Os resultados são organizados horizontalmente em quatro colunas:
 As linhas completas são mostradas após o término da varredura. Durante o
 processamento, o usuário acompanha o cliente atual e a progressão numérica.
 
+![screenshot_1](image/printscreen_1.png)
+Figura 2: Screnshoot da applicação em streamlit
 ### 7.2 Cache e estado da sessão
 
 As consultas meteorológicas e de qualidade do ar utilizam cache de dez minutos.
@@ -511,6 +513,7 @@ O `main.py` demonstra o mesmo fluxo em modo textual. Para cada cliente, exibe:
 - qualidade do ar, quando aplicável;
 - motivo da decisão;
 - mensagem simulada.
+![screenshot_1](image/printscreen_2.png)
 
 ### 7.4 Exemplos de mensagens
 

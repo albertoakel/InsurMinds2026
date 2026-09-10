@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a3e4521f-c062-4b41-98d9-b36721ac81d0" name="Changes" comment="updates scripts testes">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Agente_climatico/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/Agente_climatico/README.md" afterDir="false" />
+    <list default="true" id="a3e4521f-c062-4b41-98d9-b36721ac81d0" name="Changes" comment="adiciona versões validadas das dependências">
       <change beforePath="$PROJECT_DIR$/Agente_climatico/docs/Relatorio_Tecnico.md" beforeDir="false" afterPath="$PROJECT_DIR$/Agente_climatico/docs/Relatorio_Tecnico.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Agente_climatico/docs/Relatorio_Tecnico.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/Agente_climatico/docs/Relatorio_Tecnico.pdf" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -376,7 +375,15 @@
       <option name="project" value="LOCAL" />
       <updated>1789052259080</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="adiciona versões validadas das dependências">
+      <option name="closed" value="true" />
+      <created>1789065812182</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1789065812182</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -402,7 +409,8 @@
     <MESSAGE value="updates" />
     <MESSAGE value="updates relatorio_tecnico" />
     <MESSAGE value="updates scripts testes" />
-    <option name="LAST_COMMIT_MESSAGE" value="updates scripts testes" />
+    <MESSAGE value="adiciona versões validadas das dependências" />
+    <option name="LAST_COMMIT_MESSAGE" value="adiciona versões validadas das dependências" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
