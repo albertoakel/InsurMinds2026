@@ -1,21 +1,39 @@
-#app.py
+#app2.py
 import html
-import streamlit as st
 
-#from Agente_climatico.src.ai_agent import gerar_mensagem_ia
+import folium
+import streamlit as st
+from streamlit_folium import st_folium
 
 from src.ai_agent import gerar_mensagem_ia
-from src.data_loader import get_clientes
 from src.air_quality_service import obter_qualidade_ar
+from src.data_loader import get_clientes
 from src.rules_engine import verificar_necessidade_alerta
 from src.weather_service import obter_dados_climaticos
-
-
+from src.config import CARTO_BASEMAPS_API_KEY
 st.set_page_config(
     page_title="ProtegeSeguro AI",
     page_icon="🛡️",
     layout="wide",
 )
+
+# --bloco novo -- mapa clima
+
+
+def escolher_emoji(temperatura, condicao):
+    if temperatura >= 35.0:
+        return "🥵"
+    elif temperatura <= 10.0:
+        return "🥶"
+    elif condicao in ["rain", "thunderstorm"]:
+        return "⛈️"
+    elif condicao == "clear":
+        return "☀️"
+    else:
+        return "☁️"
+# -- mapa clima
+
+
 
 st.markdown(
     """
@@ -120,8 +138,8 @@ st.markdown(
         }
 
         [data-testid="stSidebar"] {
-            background: var(--surface) !important; /* Cor clara com contraste */
-    border-right: 1px solid var(--border);
+            background: var(--surface) !important;
+            border-right: 1px solid var(--border);
         }
 
         [data-testid="stSidebar"] * {
@@ -163,12 +181,12 @@ st.markdown(
             font-weight: 700;
             margin-bottom: 0.3rem;
         }
-        
+
         .client-age {
-        color: var(--text-soft);
-        font-size: 0.82rem;
-        font-weight: 500;
-        margin-bottom: 0.35rem;
+            color: var(--text-soft);
+            font-size: 0.82rem;
+            font-weight: 500;
+            margin-bottom: 0.35rem;
         }
 
         .client-meta {
@@ -205,15 +223,18 @@ st.markdown(
             color: var(--text-soft);
             font-size: 0.9rem;
         }
+
         .weather-details {
             color: var(--text-soft);
             font-size: 0.82rem;
             line-height: 1.55;
             margin-top: 0.45rem;
         }
+
         .weather-details strong {
             color: #334155;
-            font-weight: 600;}
+            font-weight: 600;
+        }
 
         .risk-box, .safe-box, .error-box, .sms-box, .empty-message {
             border-radius: 8px;
@@ -271,11 +292,6 @@ st.markdown(
             background-color: var(--button);
         }
 
-        #MainMenu {visibility: hidden;}
-        #header {visibility: hidden;}
-        #footer {visibility: hidden;}
-        
-    
         /* Garante que o header use a cor de fundo padrão do app */
         header[data-testid="stHeader"] {
             background-color: transparent !important;
@@ -291,7 +307,6 @@ st.markdown(
 )
 
 
-
 @st.cache_data(ttl=600, show_spinner=False)
 def buscar_clima(cidade):
     """Evita repetir consultas para a mesma cidade durante dez minutos."""
@@ -302,6 +317,7 @@ def buscar_clima(cidade):
 def buscar_qualidade_ar(latitude, longitude):
     """Evita repetir consultas de qualidade do ar por dez minutos."""
     return obter_qualidade_ar(latitude, longitude)
+
 
 def texto_seguro(valor):
     """Escapa conteúdo externo antes de inseri-lo no HTML da interface."""
@@ -326,7 +342,6 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-
 
 with st.sidebar:
     st.markdown(
@@ -379,7 +394,6 @@ with st.sidebar:
     )
 
     st.caption(f"Fonte: {arquivo_csv.name}")
-
 
 if st.button("▶ Executar varredura", type="primary"):
     resultados = []
@@ -447,7 +461,6 @@ if st.button("▶ Executar varredura", type="primary"):
     status.empty()
     progresso.empty()
 
-
 resultados = st.session_state.get("resultados_varredura", [])
 
 if resultados:
@@ -464,6 +477,101 @@ if resultados:
     metrica_3.metric("Sem risco", total_seguros)
     metrica_4.metric("Falhas", total_falhas)
 
+
+
+    # --- INÍCIO DO MAPA GLOBAL -----------------------------------------------------------
+
+    # TEMAS_CARTO = {
+    #     "Dark Matter": "dark_all",
+    #     "Positron": "light_all",
+    #     "Voyager": "rastertiles/voyager",
+    #     "Dark Matter sem nomes": "dark_nolabels",
+    #     "Positron sem nomes": "light_nolabels",
+    #     "Voyager sem nomes": "rastertiles/voyager_nolabels",
+    # }
+
+    st.markdown(
+        '<div class="results-title" style="margin-top: 2rem;">📍 Mapa de Monitoramento da Região</div>',
+        unsafe_allow_html=True,
+    )
+
+    # Inicia o mapa com o tema escuro (CartoDB dark_matter) para destacar os emojis
+    if CARTO_BASEMAPS_API_KEY:
+        mapa_global = folium.Map(
+            location=[-15.7801, -47.9292],
+            zoom_start=4,
+            tiles=None,
+            control_scale=True,
+        )
+
+        url_carto = (
+            "https://{s}.basemaps.cartocdn.com/light_all/"
+            "{z}/{x}/{y}{r}.png"
+            f"?key={CARTO_BASEMAPS_API_KEY}"
+        )
+
+        folium.TileLayer(
+            tiles=url_carto,
+            attr=(
+                '&copy; <a href="https://www.openstreetmap.org/copyright">'
+                "OpenStreetMap</a> contributors "
+                '&copy; <a href="https://carto.com/attributions">CARTO</a>'
+            ),
+            name="Positron",
+            subdomains="abcd",
+            max_zoom=20,
+        ).add_to(mapa_global)
+
+    else:
+        mapa_global = folium.Map(
+            location=[-15.7801, -47.9292],
+            zoom_start=4,
+            tiles="OpenStreetMap",
+            control_scale=True,
+        )
+
+
+
+
+    coordenadas_regiao = []
+
+    # Percorre os resultados para adicionar todos os "pins" de uma vez
+    for item in resultados:
+        clima = item["clima"]
+        cliente = item["cliente"]
+
+        if clima:
+            lat = float(clima["latitude"])
+            lon = float(clima["longitude"])
+            temperatura = float(clima["temperatura"])
+            condicao = clima.get("condicao", "")
+
+            # Salva a coordenada para ajustar o zoom depois
+            coordenadas_regiao.append([lat, lon])
+
+            emoji = escolher_emoji(temperatura, condicao)
+
+            # Emoji grande com sombra leve para contraste
+            icone_html = f"""
+            <div style="font-size: 32px; text-align: center; line-height: 1; text-shadow: 1px 1px 4px rgba(255,255,255,0.2), 0px 0px 8px rgba(0,0,0,0.8);">
+                {emoji}
+            </div>
+            """
+
+            folium.Marker(
+                location=[lat, lon],
+                icon=folium.DivIcon(html=icone_html),
+                tooltip=f"{clima.get('cidade', '')} ({temperatura:.1f}°C)",
+                popup=f"<strong>{cliente['nome']}</strong><br>{clima.get('cidade', '')}<br>{temperatura:.1f}°C - {condicao}"
+            ).add_to(mapa_global)
+
+    # Ajusta o zoom do mapa automaticamente para enquadrar apenas as coordenadas encontradas
+    if coordenadas_regiao:
+        mapa_global.fit_bounds(coordenadas_regiao)
+
+    # Renderiza o mapa com largura total
+    st_folium(mapa_global, width=None, height=450, returned_objects=[])
+    # --- FIM DO MAPA GLOBAL ---
     st.markdown(
         '<div class="results-title">Resultado da varredura</div>',
         unsafe_allow_html=True,
@@ -518,91 +626,45 @@ if resultados:
             with coluna_2:
                 if clima:
                     temperatura = float(clima["temperatura"])
-
-                    sensacao_termica = float(
-                        clima.get("sensacao_termica", temperatura)
-                    )
-
+                    sensacao_termica = float(clima.get("sensacao_termica", temperatura))
                     umidade = clima.get("umidade")
-                    umidade_texto = (
-                        f"{int(umidade)}%"
-                        if umidade is not None
-                        else "Não informada"
-                    )
+                    umidade_texto = f"{int(umidade)}%" if umidade is not None else "Não informada"
 
                     st.markdown(
                         f"""
                         <div class="section-title">Clima local</div>
-
-                        <div class="temperature">
-                            {temperatura:.1f} °C
-                        </div>
-
-                        <div class="weather-description">
-                            {texto_seguro(clima['descricao']).capitalize()}
-                        </div>
-
+                        <div class="temperature">{temperatura:.1f} °C</div>
+                        <div class="weather-description">{texto_seguro(clima['descricao']).capitalize()}</div>
                         <div class="weather-details">
-                            <div>
-                                <strong>Sensação térmica:</strong>
-                                {sensacao_termica:.1f} °C
-                            </div>
-                            <div>
-                                <strong>Umidade:</strong>
-                                {umidade_texto}
-                            </div>
+                            <div><strong>Sensação térmica:</strong> {sensacao_termica:.1f} °C</div>
+                            <div><strong>Umidade:</strong> {umidade_texto}</div>
                         </div>
                         """,
                         unsafe_allow_html=True,
                     )
-                    qualidade_ar = clima.get("qualidade_ar")
 
+                    qualidade_ar = clima.get("qualidade_ar")
                     if qualidade_ar:
                         pm2_5 = qualidade_ar.get("pm2_5")
                         pm10 = qualidade_ar.get("pm10")
-
-                        pm2_5_texto = (
-                            f"{pm2_5:.1f} µg/m³"
-                            if pm2_5 is not None
-                            else "Não informado"
-                        )
-
-                        pm10_texto = (
-                            f"{pm10:.1f} µg/m³"
-                            if pm10 is not None
-                            else "Não informado"
-                        )
+                        pm2_5_texto = f"{pm2_5:.1f} µg/m³" if pm2_5 is not None else "Não informado"
+                        pm10_texto = f"{pm10:.1f} µg/m³" if pm10 is not None else "Não informado"
 
                         st.markdown(
                             f"""
                             <div class="weather-details">
-                                <div>
-                                    <strong>Qualidade do ar:</strong>
-                                    {texto_seguro(qualidade_ar["classificacao"])}
-                                    — AQI {qualidade_ar["aqi_openweather"]}
-                                </div>
-                                <div>
-                                    <strong>PM2.5:</strong> {pm2_5_texto}
-                                </div>
-                                <div>
-                                    <strong>PM10:</strong> {pm10_texto}
-                                </div>
+                                <div><strong>Qualidade do ar:</strong> {texto_seguro(qualidade_ar["classificacao"])} — AQI {qualidade_ar["aqi_openweather"]}</div>
+                                <div><strong>PM2.5:</strong> {pm2_5_texto}</div>
+                                <div><strong>PM10:</strong> {pm10_texto}</div>
                             </div>
                             """,
                             unsafe_allow_html=True,
                         )
-
                     elif cliente["seguro"] == "Saúde / Vida":
                         st.markdown(
-                            """
-                            <div class="weather-details">
-                                <strong>Qualidade do ar:</strong> indisponível
-                            </div>
-                            """,
+                            '<div class="weather-details"><strong>Qualidade do ar:</strong> indisponível</div>',
                             unsafe_allow_html=True,
                         )
-
-
                 else:
                     st.markdown(
                         '<div class="weather-description">Dados indisponíveis</div>',

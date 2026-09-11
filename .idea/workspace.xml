@@ -4,15 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a3e4521f-c062-4b41-98d9-b36721ac81d0" name="Changes" comment="update imagens">
-      <change afterPath="$PROJECT_DIR$/Agente_climatico/app2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Agente_climatico/.env .example" beforeDir="false" afterPath="$PROJECT_DIR$/Agente_climatico/.env .example" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Agente_climatico/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/Agente_climatico/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Agente_climatico/docs/Relatorio_Tecnico.md" beforeDir="false" afterPath="$PROJECT_DIR$/Agente_climatico/docs/Relatorio_Tecnico.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Agente_climatico/docs/Relatorio_Tecnico.pdf" beforeDir="false" afterPath="$PROJECT_DIR$/Agente_climatico/docs/Relatorio_Tecnico.pdf" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Agente_climatico/docs/image/printscreen_1.png" beforeDir="false" afterPath="$PROJECT_DIR$/Agente_climatico/docs/image/printscreen_1.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Agente_climatico/src/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/Agente_climatico/src/config.py" afterDir="false" />
-    </list>
+    <list default="true" id="a3e4521f-c062-4b41-98d9-b36721ac81d0" name="Changes" comment="mapa em app.py" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -405,7 +397,23 @@
       <option name="project" value="LOCAL" />
       <updated>1789069950645</updated>
     </task>
-    <option name="localTasksCounter" value="29" />
+    <task id="LOCAL-00029" summary="mapa em app.py">
+      <option name="closed" value="true" />
+      <created>1789151780054</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1789151780054</updated>
+    </task>
+    <task id="LOCAL-00030" summary="mapa em app.py">
+      <option name="closed" value="true" />
+      <created>1789151819211</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1789151819211</updated>
+    </task>
+    <option name="localTasksCounter" value="31" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -433,7 +441,8 @@
     <MESSAGE value="updates scripts testes" />
     <MESSAGE value="adiciona versões validadas das dependências" />
     <MESSAGE value="update imagens" />
-    <option name="LAST_COMMIT_MESSAGE" value="update imagens" />
+    <MESSAGE value="mapa em app.py" />
+    <option name="LAST_COMMIT_MESSAGE" value="mapa em app.py" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -442,6 +451,11 @@
           <url>file://$PROJECT_DIR$/main.py</url>
           <line>8</line>
           <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Agente_climatico/app.py</url>
+          <line>13</line>
+          <option name="timeStamp" value="2" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
