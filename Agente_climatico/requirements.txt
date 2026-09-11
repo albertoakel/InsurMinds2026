@@ -1,5 +1,7 @@
 # Interface web
 streamlit
+folium
+streamlit-folium
 
 # Integração HTTP e variáveis de ambiente
 requests
