@@ -28,6 +28,9 @@ O projeto é um MVP educacional. O envio de SMS ou notificações é apenas simu
   falhas de processamento.
 - **🗂️ Visualização horizontal** — Cada resultado é apresentado em quatro
   colunas: segurado, clima, risco e mensagem.
+- **🗺️ Mapa climático interativo** — A interface complementar `app2.py`
+  apresenta a distribuição geográfica dos segurados analisados, utilizando as
+  coordenadas retornadas pelo OpenWeather e o serviço CARTO Basemaps.
 
 ---
 
@@ -53,7 +56,7 @@ A consulta de qualidade do ar é realizada para clientes com seguro
 
 ```text
 .
-├── app.py                         # Interface Streamlit
+├── app.py                         # Interface Streamlit com resultados e mapa
 ├── main.py                        # Execução alternativa pelo terminal
 ├── dataset/
 │   ├── clientes.csv               # Base padrão usada pelo main.py
@@ -142,6 +145,7 @@ Crie o arquivo `.env` na raiz do projeto usando `.env.example` como referência:
 ```dotenv
 GROQ_API_KEY=sua_chave_groq
 OPENWEATHER_API_KEY=sua_chave_openweather
+CARTO_BASEMAPS_API_KEY=sua_chave_carto
 ```
 
 O arquivo `.env` está ignorado pelo Git e não deve ser enviado ao repositório.
@@ -271,6 +275,9 @@ LGPD.
 - [LangChain](https://www.langchain.com/);
 - [Requests](https://requests.readthedocs.io/);
 - [python-dotenv](https://pypi.org/project/python-dotenv/).
+- [Folium](https://python-visualization.github.io/folium/) — construção do mapa interativo;
+- [streamlit-folium](https://github.com/randyzwitch/streamlit-folium) — integração do Folium com o Streamlit;
+- [CARTO Basemaps](https://carto.com/basemaps/) — camada cartográfica utilizada no mapa.
 
 ---
 

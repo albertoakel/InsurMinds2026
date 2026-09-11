@@ -66,6 +66,9 @@ componentes Python especializados para as demais responsabilidades.
 | LangChain Groq              | Integração com o modelo hospedado no Groq    |
 | python-dotenv               | Carregamento local das variáveis de ambiente |
 | CSV da biblioteca padrão    | Leitura da base de segurados                 |
+| Folium | Construção do mapa climático interativo |
+| streamlit-folium | Incorporação do mapa Folium na interface Streamlit |
+| CARTO Basemaps | Fornecimento da camada cartográfica Dark Matter |
 
 O modelo configurado na versão analisada é:
 
@@ -125,15 +128,13 @@ visual ficam em diretórios próprios.
 
 ### `app.py`
 
-Responsável por:
+Concentra a interface principal do sistema. Permite selecionar a base CSV,
+executar a varredura, acompanhar o processamento e consultar o resumo dos
+resultados.
 
-- configurar e renderizar a interface Streamlit;
-- receber o arquivo CSV;
-- apresentar a carteira de segurados;
-- controlar o progresso da varredura;
-- coordenar as consultas e regras;
-- armazenar resultados no estado da sessão;
-- apresentar métricas e resultados em quatro colunas.
+Após a análise, apresenta um mapa climático com a distribuição geográfica dos
+segurados processados. Também organiza os resultados individuais em quatro
+colunas: segurado, clima local, avaliação de risco e mensagem preventiva.
 
 ### `main.py`
 
@@ -223,6 +224,17 @@ flowchart TD
 
 A qualidade do ar é consultada apenas para apólices `Saúde / Vida`. Nos outros
 tipos, o sistema segue diretamente da consulta meteorológica para as regras.
+
+A interface principal também apresenta uma visualização cartográfica dos
+resultados. O mapa reutiliza as coordenadas de latitude e longitude retornadas
+pelo OpenWeather durante a consulta meteorológica, sem realizar uma nova etapa
+de geocodificação.
+
+Após a varredura, os resultados válidos são percorridos e adicionados a um mapa
+único. O enquadramento é ajustado automaticamente para abranger as localidades
+presentes na base selecionada. Essa visualização ocorre somente na camada de
+apresentação e não interfere na identificação dos eventos, nas regras de negócio
+ou na geração das mensagens.
 
 ---
 
@@ -487,12 +499,26 @@ Os resultados são organizados horizontalmente em quatro colunas:
 1. segurado e perfil;
 2. clima local e qualidade do ar, quando consultada;
 3. avaliação de risco;
-4. SMS gerado ou indicação de que não há mensagem.
+4. mapa da região 
+5. SMS gerado ou indicação de que não há mensagem.
 
 As linhas completas são mostradas após o término da varredura. Durante o
 processamento, o usuário acompanha o cliente atual e a progressão numérica.
 
+Após o resumo da varredura, o `app.py` apresenta um mapa de monitoramento. Para
+cada resultado que contém dados climáticos válidos, é criado um marcador na
+latitude e longitude retornadas pelo OpenWeather.
+
+Os marcadores utilizam emojis definidos a partir da temperatura e da condição
+meteorológica geral. A implementação representa calor intenso, frio intenso,
+chuva ou tempestade, céu limpo e condições de nebulosidade.
+
+O mapa apresenta informações resumidas por meio de tooltip e popup, incluindo
+nome do segurado, cidade, temperatura e condição observada. O enquadramento é
+ajustado automaticamente para incluir as coordenadas da base analisada
+
 ![screenshot_1](image/printscreen_1.png)
+
 Figura 2: Screnshoot da applicação em streamlit
 ### 7.2 Cache e estado da sessão
 
@@ -619,6 +645,7 @@ As chaves esperadas são:
 ```text
 GROQ_API_KEY
 OPENWEATHER_API_KEY
+CARTO_BASEMAPS_API_KEY
 ```
 
 Elas são carregadas do `.env`, que está incluído no `.gitignore`. O repositório
@@ -673,10 +700,19 @@ Mesmo com temperatura baixa, o modelo pode variar a redação. O motor de regras
 reduz essa variabilidade na decisão, mas não elimina a necessidade de avaliar o
 texto gerado.
 
+**Dependência do provedor cartográfico**
+
+A apresentação do mapa depende da disponibilidade do CARTO Basemaps e de uma
+chave válida. Uma eventual falha no carregamento da camada cartográfica não
+modifica os dados meteorológicos já coletados nem as decisões produzidas pelo
+motor de regras.
+
 **Ausência de envio e persistência**
 
 Não há integração real com SMS, push ou e-mail. Os resultados não são gravados
 em banco de dados.
+
+
 
 ## 10. Uso de ferramentas de inteligência artificial no desenvolvimento
 
@@ -703,13 +739,21 @@ para uma abordagem preventiva de comunicação com segurados. A solução integr
 uma base sintética, dados atuais de uma fonte pública, identificação de eventos,
 regras explicáveis e geração controlada de mensagens.
 
+O mapa climático amplia a apresentação dos resultados ao permitir observar a
+distribuição geográfica dos segurados e das condições meteorológicas
+analisadas. Essa funcionalidade está integrada à interface principal e atua
+somente como recurso de visualização, preservando o fluxo de decisão já
+implementado.
+
 O aspecto central da arquitetura é a separação entre decisão e redação. O motor
 de regras determina se existe relação entre o evento e a apólice; o modelo de
 linguagem atua somente depois dessa decisão, transformando um motivo já definido
 em um SMS curto. Isso mantém a lógica essencial verificável e utiliza a IA
 generativa onde ela agrega maior valor: clareza e personalização da comunicação.
 
-A validação funcional do projeto confirmou a execução do fluxo ponta a ponta no terminal e na interface gráfica. Com a estrutura modular consolidada, chaves protegidas, repositório integralmente sincronizado e o artefato de entrega verificado, o projeto atende com precisão a todos os critérios estabelecidos pelo desafio.
+A validação funcional do projeto confirmou a execução do fluxo ponta a ponta no 
+terminal e na interface gráfica. Com a estrutura modular consolidada, chaves protegidas, 
+repositório integralmente sincronizado e o artefato de entrega verificado, o projeto atende com precisão a todos os critérios estabelecidos pelo desafio.
 
 ---
 

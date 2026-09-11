@@ -26,3 +26,7 @@ AIR_POLLUTION_URL = (
 )
 TEMPO_LIMITE_SEGUNDOS = 10
 
+CARTO_BASEMAPS_API_KEY = os.getenv(
+    "CARTO_BASEMAPS_API_KEY",
+    "",
+).strip()
