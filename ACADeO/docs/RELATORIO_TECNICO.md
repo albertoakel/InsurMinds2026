@@ -1,7 +1,8 @@
-# Relatório Técnico — ACADeO
-## Agente Comparador de Apólices D&O
+# Relatório Técnico
 
-## 1. Resumo executivo
+## Agente Comparador de Apólices D&O (ACADeO)
+
+### 1. Resumo executivo
 
 O ACADeO é um MVP de aplicação de Inteligência Artificial Generativa para apoio à análise e comparação de apólices de seguro D&O.
 
@@ -9,9 +10,9 @@ A proposta é transformar documentos extensos e não estruturados em informaçõ
 
 O projeto prioriza uma arquitetura simples e demonstrável, adequada ao escopo de prova de conceito.
 
----
 
-## 2. Problema
+
+### 2. Problema
 
 Apólices de seguro D&O são documentos extensos, com informações distribuídas entre diferentes seções e cláusulas.
 
@@ -19,9 +20,7 @@ A comparação manual exige localizar informações, interpretar redações e id
 
 O ACADeO busca reduzir o trabalho mecânico de localização e organização das informações, mantendo a leitura humana como etapa necessária quando há diferenças textuais ou cláusulas que exigem interpretação.
 
----
-
-## 3. Objetivo
+### 3. Objetivo
 
 Construir uma solução capaz de:
 
@@ -33,9 +32,9 @@ Construir uma solução capaz de:
 6. comparar pelo menos duas apólices;
 7. apresentar as principais diferenças em uma interface gráfica.
 
----
 
-## 4. Escopo do MVP
+
+### 4. Escopo do MVP
 
 O MVP contempla:
 
@@ -52,9 +51,9 @@ O MVP contempla:
 
 O projeto não pretende ser um sistema comercial de subscrição, regulação ou aconselhamento jurídico.
 
----
 
-## 5. Arquitetura da solução
+
+### 5. Arquitetura da solução
 
 ```text
 PDF / imagem
@@ -92,37 +91,37 @@ PDF / imagem
 
 A separação entre interface e pipeline permite que a mesma lógica seja utilizada pela interface Streamlit e pela execução via linha de comando.
 
----
 
-## 6. Tecnologias utilizadas
 
-### Python
+### 6. Tecnologias utilizadas
 
-Linguagem principal da solução.
+#### Uso de Inteligência Artificial no Desenvolvimento
 
-### Streamlit
+Durante o desenvolvimento do ACADeO, ferramentas de Inteligência Artificial Generativa foram utilizadas como apoio ao processo de programação e documentação.
 
-Utilizado na construção da interface para upload, consulta e comparação.
+A IA foi utilizada para auxiliar na elaboração e revisão de código Python, investigação de erros, organização da estrutura do projeto, discussão de decisões arquiteturais e produção da documentação. Os resultados gerados foram revisados e testados no ambiente do projeto antes de serem incorporados à solução.
 
-### Google Gemini / Google GenAI
+No produto desenvolvido, a Inteligência Artificial também constitui um componente central da arquitetura. O ACADeO utiliza o modelo Gemini para realizar a análise multimodal dos documentos enviados e extrair informações relevantes das apólices de D&O. A resposta do modelo é solicitada em formato JSON estruturado e posteriormente validada por modelos Pydantic.
 
-Utilizado para a extração multimodal dos documentos.
+O uso da IA, portanto, ocorre em duas dimensões distintas: como ferramenta de apoio ao desenvolvimento e como tecnologia funcional incorporada ao produto.
 
-### Pydantic
+A utilização de IA generativa não elimina a necessidade de validação humana. No contexto deste MVP, os resultados da extração devem ser considerados como apoio à análise, e não como substituição da leitura ou avaliação profissional das cláusulas das apólices.
 
-Utilizado para definir o modelo estruturado da apólice e validar a resposta JSON.
+* Python: Linguagem principal da solução.
 
-### SQLite
+* Streamlit: Utilizado na construção da interface para upload, consulta e comparação.
 
-Utilizado para persistência local das análises.
+* Google Gemini / Google GenAI: Utilizado para a extração multimodal dos documentos.
 
-### python-dotenv
+* Pydantic: Utilizado para definir o modelo estruturado da apólice e validar a resposta JSON.
 
-Utilizado para carregar a chave da API a partir do arquivo `.env`.
+* SQLite: Utilizado para persistência local das análises.
 
----
+* python-dotenv: Utilizado para carregar a chave da API a partir do arquivo `.env`.
 
-## 7. Processo de ingestão
+
+
+### 7. Processo de ingestão
 
 A função `receber()` verifica:
 
@@ -133,9 +132,9 @@ A função `receber()` verifica:
 
 As extensões aceitas no pipeline são PDF, PNG, JPG, JPEG e WEBP.
 
----
 
-## 8. Extração com IA Generativa
+
+### 8. Extração com IA Generativa
 
 A função `extrair()` utiliza o SDK do Google GenAI.
 
@@ -154,9 +153,9 @@ O prompt determina que o modelo:
 
 A aplicação utiliza resposta JSON estruturada por schema e temperatura baixa.
 
----
 
-## 9. Estrutura dos dados
+
+### 9. Estrutura dos dados
 
 O modelo `ApoliceDO` organiza informações como:
 
@@ -187,9 +186,7 @@ O modelo `Evidencia` registra:
 - página;
 - trecho literal.
 
----
-
-## 10. Validação e confiabilidade
+### 10. Validação e confiabilidade
 
 Após a resposta do Gemini, o JSON é validado por Pydantic.
 
@@ -205,34 +202,30 @@ Esse indicador não representa uma probabilidade estatística de acerto.
 
 Quando a extração apresenta problemas, o sistema registra alertas, como recomendação de revisão humana.
 
----
-
-## 11. Persistência
+### 11. Persistência
 
 Os dados são armazenados em SQLite.
 
 A tabela `apolices` contém:
 
-| Campo | Finalidade |
-|---|---|
-| `id` | Identificador interno |
-| `arquivo` | Nome do documento |
-| `processado_em` | Data/hora do processamento |
-| `seguradora` | Seguradora identificada |
-| `tipo_documento` | Tipo do documento |
-| `confiabilidade` | Indicador heurístico |
-| `lmi_valor` | LMI numérico quando disponível |
-| `json_completo` | Resultado estruturado completo |
+| Campo            | Finalidade                     |
+| ---------------- | ------------------------------ |
+| `id`             | Identificador interno          |
+| `arquivo`        | Nome do documento              |
+| `processado_em`  | Data/hora do processamento     |
+| `seguradora`     | Seguradora identificada        |
+| `tipo_documento` | Tipo do documento              |
+| `confiabilidade` | Indicador heurístico           |
+| `lmi_valor`      | LMI numérico quando disponível |
+| `json_completo`  | Resultado estruturado completo |
 
 A escolha pelo SQLite reduz a complexidade de infraestrutura e é suficiente para o objetivo demonstrativo do MVP.
 
----
-
-## 12. Comparação
+### 12. Comparação
 
 A função `comparar()` organiza a análise em duas categorias principais.
 
-### Valores numéricos
+#### Valores numéricos
 
 Para LMI e limite agregado:
 
@@ -240,7 +233,7 @@ Para LMI e limite agregado:
 - identifica igualdade;
 - calcula a diferença percentual quando os dois valores estão disponíveis.
 
-### Informações textuais
+#### Informações textuais
 
 Para coberturas, base de reclamações, POS/franquia, prazos, retroatividade e territorialidade:
 
@@ -250,7 +243,7 @@ Para coberturas, base de reclamações, POS/franquia, prazos, retroatividade e t
 
 O sistema evita concluir automaticamente que uma cláusula textual é melhor ou pior apenas porque sua redação é diferente.
 
-### Exclusões
+#### Exclusões
 
 As exclusões são comparadas por diferença literal entre as listas extraídas.
 
@@ -261,13 +254,11 @@ A interface apresenta:
 
 Isso não significa que uma apólice necessariamente ofereça cobertura sobre um item ausente da lista da outra. A interpretação contratual continua dependendo da leitura da cláusula.
 
----
-
-## 13. Interface
+### 13. Interface
 
 A interface possui três áreas principais.
 
-### Upload e Análise
+#### Upload e Análise
 
 Permite:
 
@@ -278,11 +269,11 @@ Permite:
 - visualizar dados extraídos;
 - visualizar indicador de confiabilidade e alertas.
 
-### Apólices Salvas
+#### Apólices Salvas
 
 Permite consultar os registros armazenados no banco.
 
-### Comparar Apólices
+#### Comparar Apólices
 
 Permite:
 
@@ -292,9 +283,7 @@ Permite:
 - visualizar indicadores de igualdade/diferença;
 - consultar exclusões identificadas somente em cada apólice.
 
----
-
-## 14. Rastreabilidade
+### 14. Rastreabilidade
 
 O pipeline possui estrutura de evidências associada aos campos extraídos.
 
@@ -312,9 +301,7 @@ Trecho de evidência
 
 No MVP, a rastreabilidade existe no dado estruturado, mas não foi transformada em uma tela específica de evidências.
 
----
-
-## 15. Tratamento de erros
+### 15. Tratamento de erros
 
 O pipeline trata situações como:
 
@@ -330,37 +317,33 @@ O pipeline trata situações como:
 
 Em erros temporários do Gemini, o pipeline realiza novas tentativas antes de interromper o processamento.
 
----
+### 16. Decisões arquiteturais
 
-## 16. Decisões arquiteturais
-
-### Arquitetura simples
+#### Arquitetura simples
 
 A solução não utiliza múltiplos agentes autônomos. Para o escopo do MVP, um pipeline único é suficiente para demonstrar a utilização de GenAI, estruturação, persistência e comparação.
 
-### Gemini multimodal
+#### Gemini multimodal
 
 Foi escolhido porque o documento é a entrada principal do sistema e pode conter informações cuja localização e interpretação dependem do conteúdo visual/textual da apólice.
 
-### Pydantic
+#### Pydantic
 
 Foi escolhido para transformar a resposta generativa em uma estrutura de dados explícita e validável.
 
-### SQLite
+#### SQLite
 
 Foi escolhido pela baixa complexidade operacional e adequação ao protótipo.
 
-### Streamlit
+#### Streamlit
 
 Foi escolhido para reduzir o esforço de desenvolvimento da camada de apresentação e permitir uma demonstração funcional.
 
-### Vector database
+#### Vector database
 
 O diretório `vectorbase` foi criado como ponto de extensão arquitetural. A versão entregue não utiliza banco vetorial, pois o MVP atual não depende de busca semântica para realizar a comparação.
 
----
-
-## 17. Limitações
+### 17. Limitações
 
 As principais limitações identificadas são:
 
@@ -377,9 +360,7 @@ As principais limitações identificadas são:
 
 Essas limitações são compatíveis com o caráter de prova de conceito do projeto.
 
----
-
-## 18. Evolução futura
+### 18. Evolução futura
 
 Como evolução, o projeto pode incorporar:
 
@@ -398,9 +379,7 @@ Como evolução, o projeto pode incorporar:
 
 Essas funcionalidades não são necessárias para o funcionamento do MVP entregue.
 
----
-
-## 19. Como executar
+### 19. Como executar
 
 Na raiz do projeto:
 
@@ -422,9 +401,7 @@ Executar:
 streamlit run app.py
 ```
 
----
-
-## 20. Demonstração sugerida
+### 20. Demonstração sugerida
 
 Para a apresentação:
 
@@ -440,9 +417,9 @@ Para a apresentação:
 10. mostrar exclusões identificadas somente em cada apólice;
 11. explicar que diferenças textuais exigem análise humana.
 
----
 
-## 21. Conclusão
+
+### 21. Conclusão
 
 O ACADeO demonstra um fluxo completo de aplicação de IA generativa a documentos de seguro D&O:
 
