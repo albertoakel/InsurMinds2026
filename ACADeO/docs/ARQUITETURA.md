@@ -43,6 +43,11 @@ utilizada pelo fluxo final.
 Núcleo da versão final. Concentra recebimento, agentes Gemini,
 consolidação, validação, persistência, consulta e comparação.
 
+### `src/pipeline.py`
+
+versão anterior da pipeline que conversa diretamente com app_zero. Usa um único agente
+que concentra toda aoperações consolidação, validação, persistência, consulta e comparação.
+
 ## 3. Agentes
 
 ### Agente 1 --- Triagem

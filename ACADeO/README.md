@@ -64,6 +64,7 @@ ACADeO/
 │   └── config.toml
 ├── src/
 │   ├── __init__.py
+│   ├── pipeline.py
 │   └── pipeline_multiagent.py
 ├── vectorbase/
 │   ├── apolices.db
@@ -78,6 +79,7 @@ ACADeO/
 -   `app.py` --- interface final.
 -   `app_zero.py` --- versão anterior da interface.
 -   `src/pipeline_multiagent.py` --- pipeline final multiagente.
+-   `src/pipeline.py` --- versão anterior da interface.
 -   `vectorbase/apolices.db` --- banco SQLite.
 -   `docs/` --- documentação técnica.
 
