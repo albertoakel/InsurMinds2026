@@ -1,6 +1,6 @@
 #src/agente.py
 import pandas as pd
-0from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_experimental.agents import create_pandas_dataframe_agent
 
 

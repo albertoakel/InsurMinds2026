@@ -2,6 +2,19 @@ import streamlit as st
 from pathlib import Path
 from datetime import datetime
 
+#
+# ACADeO - Agente Comparador de APólices D&O
+
+# from src.pipeline import (
+#     receber,
+#     extrair,
+#     salvar,
+#     listar_apolices,
+#     verificar_arquivo_existente,
+#     comparar,
+#     buscar_apolice,
+#     BANCO_PADRAO,
+# )
 
 
 from src.pipeline_multiagent import (
@@ -130,42 +143,13 @@ def exibir_resultado(apolice, mensagem="Apólice analisada e salva com sucesso!"
 def processar_documento(arquivo, banco):
     """Executa o processamento completo e retorna a apólice extraída."""
 
-    st.subheader("🤖 Processamento Multiagente")
+    with st.spinner("Enviando para o Gemini..."):
+        caminho = Path(arquivo.name)
+        caminho.write_bytes(arquivo.getvalue())
 
-    status_agentes = {
-        "Agente 1 - Triagem": st.empty(),
-        "Agente 2 - Extração Estrutural": st.empty(),
-        "Agente 3 - Análise de Cláusulas": st.empty(),
-    }
-
-    def atualizar_agente(nome_agente, estado):
-        if nome_agente not in status_agentes:
-            return
-
-        if estado == "processando":
-            status_agentes[nome_agente].info(
-                f"🔄 {nome_agente}: processando..."
-            )
-
-        elif estado == "concluído":
-            status_agentes[nome_agente].success(
-                f"✅ {nome_agente}: concluído"
-            )
-
-    caminho = Path(arquivo.name)
-    caminho.write_bytes(arquivo.getvalue())
-
-    with st.spinner("Preparando documento..."):
         dados, mime = receber(caminho)
-
-    apolice = extrair(
-        caminho,
-        dados,
-        mime,
-        callback=atualizar_agente,
-    )
-
-    salvar(apolice, banco)
+        apolice = extrair(caminho, dados, mime)
+        salvar(apolice, banco)
 
     return apolice
 

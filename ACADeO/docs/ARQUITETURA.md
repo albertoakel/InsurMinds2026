@@ -1,153 +1,202 @@
-# ACADeO — Arquitetura
+# ACADeO --- Arquitetura
 
 ## 1. Visão geral
 
-O ACADeO foi estruturado como um MVP em camadas simples:
+A versão final utiliza uma arquitetura em camadas simples: interface
+Streamlit, pipeline multiagente, modelos estruturados, persistência
+SQLite e comparação determinística.
 
-```text
-Interface
-   │
-   ▼
-app.py
-   │
-   ▼
-src/pipeline.py
-   ├── recebimento
-   ├── extração multimodal
-   ├── validação
-   ├── persistência
-   ├── consulta
-   └── comparação
-        │
-        ▼
-   apolices.db
+``` text
+PDF / imagem
+     ↓
+app.py / Streamlit
+     ↓
+src/pipeline_multiagent.py
+     ↓
+┌──────────────┬─────────────────────┬─────────────────────┐
+│ Agente 1     │ Agente 2            │ Agente 3            │
+│ Triagem      │ Extração Estrutural │ Análise de Cláusulas│
+└──────────────┴─────────────────────┴─────────────────────┘
+     ↓
+Consolidação / Pydantic
+     ↓
+SQLite / apolices.db
+     ↓
+Consulta / Comparação
 ```
 
-## 2. Responsabilidade de cada componente
+## 2. Componentes
 
 ### `app.py`
 
-Responsável pela camada de apresentação:
+Interface final. Responsável por upload, acionamento do processamento,
+status dos agentes, reprocessamento, consulta e apresentação da
+comparação.
 
-- upload do documento;
-- confirmação de reprocessamento;
-- exibição dos dados extraídos;
-- consulta das apólices salvas;
-- seleção de duas apólices;
-- apresentação da comparação.
+### `app_zero.py`
 
-A interface utiliza as funções do pipeline em vez de duplicar a lógica de extração e comparação.
+Versão anterior da interface. Mantida como referência histórica e não
+utilizada pelo fluxo final.
 
-### `src/pipeline.py`
+### `src/pipeline_multiagent.py`
 
-Concentra a lógica do MVP.
+Núcleo da versão final. Concentra recebimento, agentes Gemini,
+consolidação, validação, persistência, consulta e comparação.
 
-Principais funções:
+## 3. Agentes
 
-- `receber()` — verifica existência, extensão e tamanho do arquivo;
-- `extrair()` — envia documento e prompt ao Gemini;
-- `validar()` — atribui indicador heurístico de confiabilidade e alertas;
-- `salvar()` — persiste o JSON estruturado no SQLite;
-- `listar_apolices()` — consulta os registros;
-- `buscar_apolice()` — recupera uma apólice pelo ID;
-- `comparar()` — produz as diferenças entre duas apólices.
+### Agente 1 --- Triagem
 
-### Pydantic
+Classifica o documento, verifica se é relacionado a D&O e identifica o
+tipo. Pode interromper a extração detalhada quando não houver
+classificação como D&O.
 
-O modelo `ApoliceDO` define a estrutura esperada para o resultado da extração.
+### Agente 2 --- Extração Estrutural
 
-O modelo `Evidencia` associa um campo extraído a uma página e a um trecho literal do documento.
+Extrai dados cadastrais, financeiros e de vigência: seguradora, tomador,
+SUSEP, tipo, vigência, LMI, limite agregado, prêmio e evidências.
 
-Isso cria uma base de rastreabilidade no dado estruturado, mesmo que a interface do MVP não apresente todas as evidências individualmente.
+### Agente 3 --- Análise de Cláusulas
 
-### SQLite
+Extrai base de reclamações, POS/franquia, Coberturas A/B/C, custos de
+defesa, prazos, retroatividade, territorialidade, exclusões e
+evidências.
 
-A tabela `apolices` mantém:
+## 4. Fluxo
 
-- ID;
-- nome do arquivo;
-- data de processamento;
-- seguradora;
-- tipo do documento;
-- confiabilidade;
-- LMI;
-- JSON completo da análise.
+``` text
+1. Upload
+   ↓
+2. receber()
+   ↓
+3. Triagem
+   ↓
+4. Extração Estrutural
+   ↓
+5. Análise de Cláusulas
+   ↓
+6. Consolidação
+   ↓
+7. Pydantic
+   ↓
+8. validar()
+   ↓
+9. salvar()
+```
 
-O JSON completo é mantido para que os campos estruturados possam ser recuperados posteriormente sem uma nova chamada ao Gemini.
+## 5. Comunicação com a interface
 
-## 3. Uso do modelo generativo
+O pipeline recebe um callback opcional e envia:
 
-O Gemini é utilizado na etapa de extração.
+``` text
+(nome_agente, "processando")
+(nome_agente, "concluído")
+```
 
-O documento é enviado como parte multimodal, acompanhado de instruções para:
+O `app.py` converte os eventos em mensagens do Streamlit. O terminal
+também mantém os prints de acompanhamento.
 
-1. extrair somente dados explicitamente presentes;
-2. não inventar informações;
-3. priorizar regiões relevantes da apólice;
-4. produzir evidências de página e trecho;
-5. devolver exclusivamente o JSON definido pelo schema.
+## 6. Modelo de dados
 
-A configuração utiliza resposta JSON estruturada e temperatura baixa.
+`ApoliceDO` representa a apólice consolidada. `Evidencia` associa um
+campo ao número da página e a um trecho literal.
 
-## 4. Validação
+``` text
+campo extraído
+     ↓
+página
+     ↓
+trecho literal
+```
 
-A resposta do modelo é convertida em `ApoliceDO` por Pydantic.
+## 7. Persistência
 
-Depois da validação estrutural, o pipeline calcula um indicador heurístico:
+``` text
+vectorbase/apolices.db
+```
 
-- `alta`;
-- `media`;
-- `baixa`.
+A tabela `apolices` mantém o registro principal e o JSON completo da
+análise. O JSON permite recuperar os dados sem nova chamada ao Gemini.
 
-Também são produzidos alertas quando há pouca informação extraída ou ausência de evidências em campos relevantes.
+O diretório `vectorbase` não contém banco vetorial nesta versão; é área
+de persistência e ponto de extensão.
 
-## 5. Comparação
+## 8. Comparação
 
-A comparação não tenta produzir uma decisão jurídica automática.
+``` text
+Apolice A ─┐
+           ├── Python determinístico ──► resultado
+Apolice B ─┘
+```
 
-Para valores numéricos, como LMI e limite agregado, o sistema calcula a diferença percentual quando ambos os valores estão disponíveis.
+Valores numéricos são comparados por regras determinísticas. Textos são
+classificados como ausentes, iguais ou diferentes. Exclusões são
+comparadas por diferença literal entre listas.
 
-Para textos, o sistema diferencia:
+## 9. Separação entre IA e regras
 
-- informação ausente;
-- textos iguais;
-- textos diferentes, que requerem leitura da cláusula.
+``` text
+IA Generativa
+ ├── classificação
+ ├── extração
+ └── identificação de cláusulas
+             ↓
+       dados estruturados
+             ↓
+Python determinístico
+ ├── validação
+ ├── persistência
+ └── comparação
+```
 
-As exclusões são comparadas por diferença entre conjuntos de textos.
+A arquitetura limita a responsabilidade do modelo generativo na etapa de
+comparação.
 
-## 6. Decisões arquiteturais
+## 10. Decisões arquiteturais
 
-### Por que Streamlit?
+-   **Streamlit:** interface funcional com baixa complexidade.
+-   **Gemini multimodal:** adequado a documentos PDF/imagem.
+-   **Multiagente:** separa triagem, extração estrutural e cláusulas.
+-   **Pydantic:** valida respostas estruturadas.
+-   **SQLite:** persistência simples para o MVP.
+-   **Comparação determinística:** comportamento reproduzível para
+    regras numéricas e literais.
+-   **Sem RAG/vector database:** não necessário para a comparação atual.
 
-Porque permite construir rapidamente uma interface funcional para demonstrar o MVP sem introduzir uma camada web complexa.
+## 11. Limites
 
-### Por que SQLite?
+A arquitetura atual não foi projetada para alta concorrência,
+processamento massivo, operação distribuída, integração com seguradoras,
+autenticação, autorização, auditoria operacional completa ou decisão
+jurídica automática.
 
-Porque o projeto é um protótipo educacional e precisa apenas de persistência local simples.
+## 12. Evolução
 
-### Por que Pydantic?
+Uma evolução possível adicionaria validação/revisão, RAG, banco
+vetorial, busca semântica, comparação semântica, geração de relatórios,
+API, autenticação e observabilidade.
 
-Porque fornece uma estrutura explícita para os dados extraídos e permite validar a resposta JSON do modelo.
+## 13. Estrutura final
 
-### Por que Gemini multimodal?
-
-Porque a entrada principal é um documento PDF/imagem e o objetivo do MVP é demonstrar extração automática de conteúdo documental.
-
-### Por que não usar vector database agora?
-
-A comparação atual é baseada nos campos estruturados extraídos. Busca semântica, RAG ou recuperação vetorial podem ser adicionadas em uma evolução posterior, mas não são necessárias para demonstrar os requisitos centrais do MVP.
-
-## 7. Evolução futura
-
-Possibilidades:
-
-- RAG e busca semântica;
-- vector database;
-- comparação semântica de cláusulas;
-- apresentação das evidências diretamente na interface;
-- processamento de maior volume de documentos;
-- API;
-- banco relacional externo;
-- autenticação e controle de acesso;
-- observabilidade;
-- avaliação sistemática da qualidade da extração.
+``` text
+ACADeO/
+├── app.py
+├── app_zero.py
+├── README.md
+├── requirements.txt
+├── .env.example
+├── .gitignore
+├── .streamlit/
+│   └── config.toml
+├── src/
+│   ├── __init__.py
+│   └── pipeline_multiagent.py
+├── vectorbase/
+│   ├── apolices.db
+│   └── README.md
+└── docs/
+    ├── README.md
+    ├── RELATORIO_TECNICO.md
+    ├── ARQUITETURA.md
+    └── TESTES_E_LIMITACOES.md
+```
